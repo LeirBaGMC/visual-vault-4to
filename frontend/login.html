@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Inicia sesión en Visual Vault Corp para acceder a tus tableros, pines y descubrir nuevo contenido multimedia."
+    />
+    <title>Visual Vault - Iniciar Sesión</title>
+    <link rel="stylesheet" href="assets/css/global.css" />
+    <link rel="stylesheet" href="assets/css/login.css" />
+    <script src="assets/js/api.js" defer></script>
+    <script src="assets/js/login.js" defer></script>
+  </head>
+  <body>
+    <header class="auth-header">
+      <a href="index.html" class="logo-area" aria-label="Volver al inicio">
+        <img src="#" alt="Logotipo de Visual Vault" class="logo-img-auth" />
+        <span class="logo-text">Visual Vault</span>
+      </a>
+    </header>
+
+    <main class="auth-main-container">
+      <section class="auth-card-section" aria-labelledby="login-title">
+        <article class="auth-card">
+          <h1 id="login-title">Iniciar Sesión</h1>
+          <p class="auth-subtitle">
+            Accede a tus tableros y descubre nuevo contenido multimedia
+          </p>
+
+          <form id="login-form" class="auth-form" novalidate>
+            <div class="form-group">
+              <label for="username-or-email">Nombre de usuario o correo</label>
+              <input
+                type="text"
+                id="username-or-email"
+                name="username_or_email"
+                required
+                aria-required="true"
+                aria-describedby="err-login-user"
+                placeholder="Ingresa tu cuenta registrada"
+              />
+              <span
+                class="error-message hidden"
+                id="err-login-user"
+                role="alert"
+                aria-live="polite"
+              ></span>
+            </div>
+
+            <div class="form-group">
+              <label for="login-password">Contraseña</label>
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                required
+                aria-required="true"
+                aria-describedby="err-login-pass"
+                placeholder="Introduce tu clave de seguridad"
+              />
+              <span
+                class="error-message hidden"
+                id="err-login-pass"
+                role="alert"
+                aria-live="polite"
+              ></span>
+            </div>
+
+            <div
+              id="security-alert"
+              class="security-alert-box hidden"
+              role="alert"
+              aria-live="assertive"
+            >
+              <p>
+                <span class="material-symbols-outlined" aria-hidden="true"
+                  >person_alert</span
+                >
+                Tu cuenta será bloqueada temporalmente si excedes 3 intentos
+                fallidos.
+              </p>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+              Entrar de forma segura
+            </button>
+          </form>
+
+          <div class="auth-card-footer">
+            <p>
+              ¿Eres nuevo en Visual Vault?
+              <a href="register.html" class="auth-link">Regístrate ahora</a>
+            </p>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="main-footer" role="contentinfo">
+      <div class="footer-container">
+        <p>&copy; 2026 Visual Vault Corp.</p>
+      </div>
+    </footer>
+  </body>
+</html>
