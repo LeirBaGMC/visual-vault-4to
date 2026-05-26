@@ -1,28 +1,26 @@
-/* ==========================================================================
-   SISTEMA DE DISEÑO Y VARIABLES GLOBALES - REFACCTORADO
-   ========================================================================== */
 :root {
-    /* Nueva Paleta Tech-Creative (Inspirada en Stripe/Figma) */
-    --color-primary: #ff0000;          /* Índigo Eléctrico Vibrante */
-    --color-primary-hover: #4338CA;    /* Índigo Profundo */
-    --color-secondary: #F3F4F6;        /* Gris Claro Neutro */
-    --color-secondary-hover: #E5E7EB;  /* Gris de Contraste Activo */
-    --color-danger: #EF4444;           /* Rojo Moderno (Menos agresivo) */
+  
+    
+    --color-primary: #ff0000;          
+    --color-primary-hover: #4338CA;    
+    --color-secondary: #F3F4F6;        
+    --color-secondary-hover: #E5E7EB;  
+    --color-danger: #EF4444;           
     --color-danger-hover: #DC2626;
-    --color-warning: #F59E0B;          /* Ámbar de Moderación y Contenido Sensible */
+    --color-warning: #F59E0B;         
     
-    --color-background-app: #F9FAFB;   /* Fondo ultra-limpio y luminoso */
+    --color-background-app: #F9FAFB;   
     --color-background-card: #FFFFFF;
-    --color-border: #E5E7EB;           /* Bordes más sutiles */
-    --color-text-dark: #111827;        /* Negro carbón para reducir fatiga visual */
-    --color-text-light: #6B7280;       /* Gris medio para metadatos */
+    --color-border: #E5E7EB;           
+    --color-text-dark: #111827;        
+    --color-text-light: #6B7280;      
     
-    /* Sistema Tipográfico Dual */
+   
     --font-headings: 'Poppins', system-ui, sans-serif;
     --font-body: 'Inter', system-ui, sans-serif; 
     
     --radius-sm: 10px;
-    --radius-md: 20px;                 /* Curvatura Pinterest más orgánica */
+    --radius-md: 20px;                
     --radius-round: 50%;
     --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
@@ -57,18 +55,13 @@ button, input {
     outline: none;
 }
 
-/* ==========================================================================
-   MATERIAL SYMBOLS (Ajustes de alineamiento base)
-   ========================================================================== */
 .material-symbols-outlined {
     vertical-align: middle;
     line-height: 1;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-/* ==========================================================================
-   CABECERA PRINCIPAL (HEADER)
-   ========================================================================== */
+
 .main-header {
     background-color: var(--color-background-card);
     border-bottom: 1px solid var(--color-border);
@@ -173,9 +166,7 @@ button, input {
     transform: scale(1.05);
 }
 
-/* ==========================================================================
-   BOTONES CORPORATIVOS
-   ========================================================================== */
+
 .btn {
     font-family: var(--font-headings);
     display: inline-flex;
@@ -257,9 +248,7 @@ button, input {
     border: 1px solid var(--color-border);
 }
 
-/* ==========================================================================
-   PIE DE PÁGINA COMÚN (FOOTER)
-   ========================================================================== */
+
 .main-footer {
     background-color: var(--color-background-card);
     border-top: 1px solid var(--color-border);
