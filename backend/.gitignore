@@ -1,0 +1,16 @@
+# Entornos virtuales
+venv/
+
+# Caché de Python
+__pycache__/
+*.pyc
+
+# Variables de entorno (¡CLAVE PARA SEGURIDAD!)
+.env
+
+# Bases de datos locales
+database.db
+
+# Archivos de sistema (opcional pero recomendado)
+.DS_Store
+Thumbs.db

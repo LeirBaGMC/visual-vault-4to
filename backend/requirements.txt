@@ -1,0 +1,13 @@
+# Servidor y API (Incluye Uvicorn y Multipart)
+fastapi[standard]
+
+# Base de Datos (Incluye SQLAlchemy)
+sqlmodel
+
+# Seguridad y Autenticación
+passlib[bcrypt]
+python-jose[cryptography]
+
+# Nube y Entorno
+boto3
+python-dotenv
