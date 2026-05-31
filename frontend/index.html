@@ -14,8 +14,8 @@
     />
     <link rel="stylesheet" href="assets/css/global.css" />
     <link rel="stylesheet" href="assets/css/index.css" />
-    <script src="assets/js/api.js" defer></script>
-    <script src="assets/js/index.js" defer></script>
+    <script src="assets/js/VanillaJS/api.js" defer></script>
+    <script src="assets/js/VanillaJS/index.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -85,59 +85,30 @@
       </div>
     </header>
 
-    <nav class="categories-nav" aria-label="Filtrado rápido por Categorías">
-      <p class="categories-title" id="category-heading">
-        Explora por categoría:
-      </p>
-      <ul
-        id="categories-list"
-        class="categories-list"
-        aria-labelledby="category-heading"
+    <main class="main-content" id="react-feed-root">
+      <p
+        class="loader-placeholder"
+        aria-busy="true"
+        style="text-align: center; margin-top: 50px"
       >
-        <li>
-          <a
-            href="#"
-            class="category-chip active"
-            data-category="all"
-            aria-current="page"
-            >Todos</a
-          >
-        </li>
-        <li>
-          <a href="#" class="category-chip" data-category="Animals">Animals</a>
-        </li>
-        <li><a href="#" class="category-chip" data-category="Art">Art</a></li>
-        <li>
-          <a href="#" class="category-chip" data-category="Beauty">Beauty</a>
-        </li>
-        <li>
-          <a href="#" class="category-chip" data-category="Design">Design</a>
-        </li>
-        <li>
-          <a href="#" class="category-chip" data-category="Food"
-            >Food & Drink</a
-          >
-        </li>
-      </ul>
-    </nav>
-
-    <main class="main-content">
-      <section class="feed-section" aria-label="Feed principal de imágenes">
-        <div
-          id="feed-grid"
-          class="feed-grid"
-          aria-live="polite"
-          aria-atomic="false"
-        >
-          <p class="loader-placeholder" aria-busy="true">Cargando ...</p>
-        </div>
-      </section>
+        Despertando el motor de Visual Vault...
+      </p>
     </main>
-
     <footer class="main-footer" role="contentinfo">
       <div class="footer-container">
         <p>&copy; 2026 Visual Vault Corp.</p>
       </div>
     </footer>
+
+    <script
+      src="https://unpkg.com/react@18/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" src="assets/js/ReactJSX/Feed.jsx"></script>
   </body>
 </html>

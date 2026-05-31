@@ -1,10 +1,28 @@
-# Python
+# --- Python ---
 __pycache__/
 *.pyc
-.env
-venv/
+*.pyo
+*.pyd
 
-# SO
+# --- Entornos Virtuales ---
+venv/
+env/
+.env
+
+# --- Bases de datos ---
+database.db
+*.sqlite
+*.sqlite3
+
+# --- Scripts de pruebas o temporales ---
+bdd.py
+temp/
+*.log
+
+# --- Sistema Operativo ---
 .DS_Store
 Thumbs.db
+
+# --- Editores ---
 .vscode/
+.idea/
