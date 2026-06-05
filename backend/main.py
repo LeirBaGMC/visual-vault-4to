@@ -25,7 +25,7 @@ app = FastAPI(
 # Permisos para que el HTML/React pueda hablar con este archivo después
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

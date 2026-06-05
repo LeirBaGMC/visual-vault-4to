@@ -25,4 +25,8 @@ Thumbs.db
 
 # --- Editores ---
 .vscode/
-.idea/
+.idea/node_modules/
+
+# Dependencias pesadas
+node_modules/
+**/node_modules/
