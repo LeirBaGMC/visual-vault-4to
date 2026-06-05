@@ -1,66 +1,70 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from "@heroui/react";
-import Logo from '../molecules/header/Logo';
-// Quitamos el SearchBar viejo por ahora para replicar el de Spread
+import Logo from '../molecules/header/Logo'; // Asegúrate de que esta ruta coincida con tu proyecto
 
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
 
-    // Escuchamos el scroll de la página
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 50) {
-                setIsScrolled(true);
-            } else {
-                setIsScrolled(false);
-            }
+            setIsScrolled(window.scrollY > 50);
         };
-
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
-        /* 
-           Contenedor principal: Se centra y usa transiciones fluidas de Tailwind
-           para imitar la curva cúbica de Spread (duration-500 ease-out) 
-        */
-        <nav className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-out overflow-hidden rounded-full backdrop-blur-md flex items-center
-            ${isScrolled 
-                ? 'w-[280px] bg-white/80 shadow-lg border border-gray-200/60 py-2 px-4 gap-2' // Estado Scrolled (Chiquito)
-                : 'w-[90%] max-w-[800px] bg-gray-900/10 border border-gray-400/20 py-3 px-6 gap-6' // Estado Top (Grande)
-            }
-        `}>
+        // El contenedor fijo en la parte superior
+        <header className={`fixed top-0 left-0 w-full z-50 flex justify-center transition-all duration-500 pointer-events-none ${isScrolled ? 'pt-4' : 'pt-6'}`}>
             
-            {/* Logo siempre visible */}
-            <div className="flex-shrink-0">
-                <Logo />
-            </div>
+            {/* La barra de navegación que se transforma */}
+            <nav 
+                className={`pointer-events-auto flex items-center transition-all duration-500 bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-lg ${
+                    isScrolled 
+                    ? 'rounded-full p-1.5 gap-1' // ESTADO SCROLL: Pequeña píldora apretada
+                    : 'w-[90%] max-w-[1200px] rounded-full px-6 py-3 justify-between' // ESTADO INICIAL: Ancha y expandida
+                }`}
+            >
+                {/* LADO IZQUIERDO: Logo y Links (Solo existen si NO hay scroll) */}
+                {!isScrolled && (
+                    <div className="flex items-center gap-8 animate-in fade-in zoom-in duration-300">
+                        <Logo />
+                        {/* Links del centro (Ocultos en móviles, visibles en PC) */}
+                        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+                            <Link to="/" className="hover:text-slate-900 transition-colors">Inicio</Link>
+                            <Link to="/about" className="hover:text-slate-900 transition-colors">Quiénes Somos</Link>
+                            <Link to="/services" className="hover:text-slate-900 transition-colors">Servicios</Link>
+                            <Link to="/policies" className="hover:text-slate-900 transition-colors">Políticas</Link>
+                        </div>
+                    </div>
+                )}
 
-            {/* Links centrales: Se ocultan al hacer scroll */}
-            <div className={`flex-1 overflow-hidden transition-all duration-500 ease-out ${isScrolled ? 'max-w-0 opacity-0' : 'max-w-[500px] opacity-100'}`}>
-                <ul className="flex items-center justify-center gap-6 text-sm font-medium text-gray-700 whitespace-nowrap">
-                    <li><Link to="/" className="hover:text-brandPrimary transition-colors">Inicio</Link></li>
-                    <li><Link to="/nosotros" className="hover:text-brandPrimary transition-colors">Quiénes Somos</Link></li>
-                    <li><Link to="/servicios" className="hover:text-brandPrimary transition-colors">Servicios</Link></li>
-                    <li><Link to="/politicas" className="hover:text-brandPrimary transition-colors">Políticas</Link></li>
-                </ul>
-            </div>
-
-            {/* Botón de Registro: Cambia de tamaño según el scroll */}
-            <div className="flex-shrink-0 ml-auto">
-                <Link to="/register">
-                    <Button 
-    radius="full" 
-    className={`font-bold bg-slate-900 text-white shadow-md transition-all duration-500 hover:bg-slate-800 ${isScrolled ? 'h-8 px-4 text-xs' : 'h-10 px-6 text-sm'}`}
->
-    Registro
-</Button>
-                </Link>
-            </div>
-
-        </nav>
+                {/* LADO DERECHO: Botones de Acción (Siempre visibles) */}
+                <div className="flex items-center gap-2">
+                    
+                    {/* Botón Login */}
+                    <Link 
+                        to="/login" 
+                        className={`font-semibold rounded-full transition-all flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-slate-900 ${
+                            isScrolled 
+                            ? 'h-10 px-6 text-sm bg-white shadow-sm border border-slate-100' // Destaca un poco más cuando es píldora
+                            : 'h-10 px-4 text-sm'
+                        }`}
+                    >
+                        Inicio de Sesión
+                    </Link>
+                    
+                    {/* Botón Registro */}
+                    <Link 
+                        to="/register" 
+                        className="h-10 px-6 text-sm font-semibold rounded-full transition-all flex items-center justify-center bg-slate-900 text-white hover:bg-slate-800 shadow-md"
+                    >
+                        Registro
+                    </Link>
+                    
+                </div>
+            </nav>
+        </header>
     );
 };
 

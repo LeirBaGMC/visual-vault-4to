@@ -1,5 +1,6 @@
 import Hero from '../organism/Hero';
 import FeatureShowcase from '../organism/FeatureShowcase';
+import Footer from '../organism/Footer';
 
 const HomePage = () => {
     return (
@@ -7,6 +8,7 @@ const HomePage = () => {
         <div className="w-full bg-[#FAF7F4]">
             <Hero />
             <FeatureShowcase />
+            <Footer />
         </div>
     );
 };

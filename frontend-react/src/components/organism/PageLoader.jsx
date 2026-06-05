@@ -1,63 +1,62 @@
-import { useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
 
 const PageLoader = () => {
+    const [progress, setProgress] = useState(0);
     const loaderRef = useRef(null);
-    const counterRef = useRef(null);
-    const progressRef = useRef(null);
 
-    useGSAP(() => {
-        // Bloqueamos el scroll mientras carga
-        document.body.style.overflow = 'hidden';
-
-        const tl = gsap.timeline({
-            onComplete: () => {
-                // Devolvemos el scroll cuando termina
-                document.body.style.overflow = '';
+    useEffect(() => {
+        // Simulador de carga (puedes conectarlo a la carga real de imágenes después)
+        let currentProgress = 0;
+        
+        const interval = setInterval(() => {
+            // Avanza aleatoriamente para que se sienta humano y real
+            currentProgress += Math.floor(Math.random() * 100) + 5;
+            
+            if (currentProgress >= 100) {
+                currentProgress = 100;
+                clearInterval(interval);
+                
+                // LA MAGIA DE SALIDA: 
+                // Cuando llega a 100, espera medio segundo y desliza la pantalla hacia arriba
+                gsap.to(loaderRef.current, {
+                    yPercent: -100, 
+                    duration: 1.2,
+                    ease: "power4.inOut",
+                    delay: 0.4
+                });
             }
-        });
+            
+            setProgress(currentProgress);
+        }, 150);
 
-        // 1. Animamos el contador de 0 a 100 y llenamos la barra
-        tl.to({ val: 0 }, {
-            val: 100,
-            duration: 1.5,
-            ease: "power2.inOut",
-            onUpdate: function () {
-                if (counterRef.current) {
-                    counterRef.current.innerText = Math.round(this.targets()[0].val).toString().padStart(2, '0');
-                }
-                if (progressRef.current) {
-                    progressRef.current.style.width = this.targets()[0].val + "%";
-                }
-            }
-        })
-        // 2. El telón rojo se desliza hacia arriba y desaparece
-        .to(loaderRef.current, {
-            yPercent: -100,
-            duration: 0.8,
-            ease: "power3.inOut",
-            delay: 0.2
-        });
-    });
+        return () => clearInterval(interval);
+    }, []);
 
     return (
-        // z-[9999] asegura que esté por encima de TODO
-        <div ref={loaderRef} className="fixed inset-0 z-[9999] bg-brandPrimary flex flex-col items-center justify-center pointer-events-none">
-            {/* Aquí puedes cambiar la V por tu Logo real luego */}
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-brandPrimary font-bold text-3xl mb-8">
-                V
+        // El contenedor ahora usa el color crema de tu tema (#FAF7F4)
+        <div 
+            ref={loaderRef} 
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#FAF7F4] w-full h-screen"
+        >
+            {/* El Logo Animado */}
+            <div className="relative w-20 h-20 rounded-full flex items-center justify-center text-4xl font-black shadow-2xl mb-10 overflow-hidden bg-white border border-slate-200">
+                
+                {/* El líquido de fondo que sube con el porcentaje */}
+                <div 
+                    className="absolute bottom-0 left-0 w-full bg-slate-900 transition-all duration-200 ease-out"
+                    style={{ height: `${progress}%` }}
+                ></div>
+
+                {/* La letra 'V' que cambia de color por contraste (magia CSS) */}
+                <span className="relative z-10 text-slate-900 mix-blend-difference text-white">
+                    V
+                </span>
             </div>
+
             
-            {/* Barra de progreso */}
-            <div className="w-48 h-1 bg-white/20 rounded-full overflow-hidden mb-3">
-                <div ref={progressRef} className="h-full bg-white w-0 rounded-full"></div>
-            </div>
+
             
-            {/* Contador */}
-            <div className="font-mono text-sm tracking-widest text-white/70">
-                <span ref={counterRef}>00</span>
-            </div>
         </div>
     );
 };
