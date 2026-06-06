@@ -12,16 +12,54 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
-# 2. Inicializamos el "robot" de comunicación con Amazon S3
+# 2. Inicializamos los "robots" de comunicación con Amazon (S3 y Rekognition)
 try:
+    # Cliente para Almacenamiento (S3)
     s3_client = boto3.client(
         's3',
         aws_access_key_id=AWS_ACCESS_KEY_ID,
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         region_name=AWS_REGION
     )
+    
+    # Cliente para Inteligencia Artificial (Rekognition)
+    rekognition_client = boto3.client(
+        'rekognition',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION
+    )
 except Exception as e:
-    print(f"⚠️ Error al inicializar el cliente S3. Revisa tus credenciales. Detalles: {e}")
+    print(f"⚠️ Error al inicializar los clientes de AWS. Revisa tus credenciales. Detalles: {e}")
+
+
+def analizar_imagen_nsfw(imagen_bytes: bytes) -> tuple[bool, list]:
+    """
+    Envía la imagen a Amazon Rekognition para detectar contenido +18 o sensible.
+    Retorna una tupla: (Es_Segura: bool, Etiquetas_Detectadas: list)
+    """
+    try:
+        # Llamamos a la IA de AWS para que analice los bytes
+        respuesta = rekognition_client.detect_moderation_labels(
+            Image={'Bytes': imagen_bytes},
+            MinConfidence=75.0 # Umbral: Solo queremos etiquetas de las que la IA esté 75% o más segura
+        )
+        
+        etiquetas_peligrosas = respuesta.get('ModerationLabels', [])
+        
+        # Si la lista está vacía, la imagen es completamente limpia.
+        if len(etiquetas_peligrosas) > 0:
+            # Extraemos los nombres exactos de las infracciones (ej: 'Explicit Nudity', 'Violence')
+            nombres_etiquetas = [etiqueta['Name'] for etiqueta in etiquetas_peligrosas]
+            print(f"🚨 Alerta IA: Contenido sensible detectado -> {nombres_etiquetas}")
+            return False, nombres_etiquetas
+            
+        return True, []
+
+    except ClientError as e:
+        print(f"❌ Error en AWS Rekognition: {e}")
+        # En caso de fallo de AWS, bloqueamos preventivamente
+        return False, ["Error de validación AI con AWS"]
 
 
 def subir_imagen_s3(archivo_bytes: bytes, nombre_original: str, content_type: str) -> str:
