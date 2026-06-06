@@ -2,15 +2,15 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
     return (
-        // Usamos slate-950 para un negro profundo y redondeamos las esquinas superiores para que parezca una "tarjeta" que sube
+        
         <footer className="bg-slate-950 text-slate-300 py-24 px-6 md:px-12 rounded-t-[40px] mt-12 relative z-10 overflow-hidden">
             
-            {/* Brillo de fondo (Detalle Premium) */}
+            
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-white/5 rounded-[100%] blur-[120px] pointer-events-none"></div>
 
             <div className="max-w-[1200px] mx-auto flex flex-col gap-20 relative z-10">
                 
-                {/* SECCIÓN 1: El Gran Llamado a la Acción (CTA) */}
+                
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 border-b border-slate-800/80 pb-20">
                     <div className="max-w-2xl">
                         <h2 className="font-display text-5xl md:text-7xl font-medium text-white tracking-tight mb-6">
@@ -31,9 +31,9 @@ const Footer = () => {
                     </Link>
                 </div>
 
-                {/* SECCIÓN 2: Links de Navegación y Marca */}
+                
                 <div className="flex flex-col md:flex-row justify-between gap-16">
-                    {/* Columna Izquierda: Marca */}
+                    
                     <div className="flex flex-col gap-6 max-w-sm">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-900 font-black text-xl">
@@ -43,12 +43,10 @@ const Footer = () => {
                                 Visual Vault
                             </span>
                         </div>
-                        <p className="text-slate-500 leading-relaxed text-sm">
-                            El cerebro digital impulsado por IA para desarrolladores Full Stack y diseñadores exigentes.
-                        </p>
+                        
                     </div>
 
-                    {/* Columnas Derecha: Enlaces */}
+                    
                     <div className="flex gap-16 md:gap-24">
                         <div className="flex flex-col gap-5">
                             <h4 className="text-white font-bold text-xs tracking-[0.2em] uppercase">Producto</h4>
@@ -65,15 +63,7 @@ const Footer = () => {
                     </div>
                 </div>
 
-                {/* SECCIÓN 3: Copyright */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-slate-800/80 text-sm text-slate-600">
-                    <p>© 2026 Kyosei Tech. Todos los derechos reservados.</p>
-                    <div className="flex gap-6">
-                        <a href="#" className="hover:text-white transition-colors">GitHub</a>
-                        <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-                        <a href="#" className="hover:text-white transition-colors">X (Twitter)</a>
-                    </div>
-                </div>
+                
             </div>
         </footer>
     );

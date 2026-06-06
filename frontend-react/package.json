@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.11.0",
+    "@azure/msal-react": "^5.4.2",
     "@gsap/react": "^2.1.2",
     "@heroui/react": "^3.1.0",
     "@heroui/system": "^2.4.28",
