@@ -7,7 +7,15 @@ sqlmodel
 # Seguridad y Autenticación
 passlib[bcrypt]
 python-jose[cryptography]
+bcrypt==4.3.0
 
 # Nube y Entorno
 boto3
 python-dotenv
+
+# Peticiones y Web Scraping (Inyectores y Recolector)
+requests
+playwright
+
+# Correos Electrónicos y Notificaciones
+fastapi-mail

@@ -11,6 +11,9 @@ __pycache__/
 # Bases de datos locales
 database.db
 
+# Descargas locales del recolector (¡Se leen desde AWS S3!)
+Pics/
+
 # Archivos de sistema (opcional pero recomendado)
 .DS_Store
 Thumbs.db
