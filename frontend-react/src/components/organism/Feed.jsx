@@ -1,27 +1,29 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Spinner } from "@heroui/react";
-import PinCard from '../molecules/feed/Pincard';
+import PinCard from '../molecules/Pincard'; 
 
 const Feed = () => {
     const [pins, setPins] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // Estado inicializado correctamente
+    const [viewedPins, setViewedPins] = useState(() => {
+        const saved = localStorage.getItem('viewedPins');
+        return saved ? JSON.parse(saved) : [];
+    }); 
+    const navigate = useNavigate();
 
     useEffect(() => {
+        // Llamada a la API limpia
         const fetchPins = async () => {
             try {
-                // Asumo que tu backend de FastAPI corre en el puerto 8000.
-                // Ajusta la ruta "/pins" según el endpoint que creaste en tu backend.
-                const response = await fetch('http://localhost:8000/api/v1/pins'); 
-                
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/pins`); 
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
-                
                 const data = await response.json();
-                
-                // Si FastAPI devuelve un objeto como { "data": [...] }, usa setPins(data.data)
-                // Si devuelve directamente el arreglo [...], usa setPins(data)
                 setPins(data); 
             } catch (err) {
                 console.error("Error al obtener los pines:", err);
@@ -34,7 +36,20 @@ const Feed = () => {
         fetchPins();
     }, []);
 
-    // Pantalla de carga mientras trae los datos de AWS/FastAPI
+    const handlePinClick = (pin) => {
+        console.log("2. [Feed] handlePinClick activado con éxito para el pin ID:", pin.id);
+
+        if (!viewedPins.includes(pin.id)) {
+            const updatedViewedPins = [...viewedPins, pin.id];
+            setViewedPins(updatedViewedPins);
+            localStorage.setItem('viewedPins', JSON.stringify(updatedViewedPins));
+            console.log("3. [Feed] ID guardado en localStorage");
+        }
+
+        console.log("4. [Feed] Intentando navegar a: /pin/" + pin.id);
+        navigate(`/pin/${pin.id}`);
+    };
+
     if (loading) {
         return (
             <div className="w-full flex justify-center items-center h-64">
@@ -43,7 +58,6 @@ const Feed = () => {
         );
     }
 
-    // Pantalla de error por si el backend está apagado
     if (error) {
         return (
             <div className="w-full text-center py-20">
@@ -55,12 +69,16 @@ const Feed = () => {
         );
     }
 
-    // El Feed real renderizado
     return (
         <div className="w-full mt-4">
             <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
                 {pins.map((pin) => (
-                    <PinCard key={pin.id} pin={pin} />
+                    <PinCard 
+                        key={pin.id} 
+                        pin={pin} 
+                        isViewed={viewedPins.includes(pin.id)} 
+                        onClick={handlePinClick} 
+                    />
                 ))}
             </div>
         </div>

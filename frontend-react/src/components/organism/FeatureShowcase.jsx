@@ -3,14 +3,12 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 
-// Registramos el hook y el plugin correctamente
+// Es buena práctica registrar los plugins fuera del componente
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const FeatureShowcase = () => {
     const sectionRef = useRef(null);
 
-    // Reemplazamos useEffect por useGSAP. 
-    // Esto limpia la memoria automáticamente y evita que las letras se queden en opacity: 0
     useGSAP(() => {
         const elements = gsap.utils.toArray('.gs-reveal');
         
@@ -31,14 +29,15 @@ const FeatureShowcase = () => {
             );
         });
 
-        // EL SEGURO DE VIDA:
-        // Le pedimos a GSAP que vuelva a calcular TODAS las posiciones de la página 
-        // medio segundo después de montar el componente, dando tiempo a que las imágenes carguen.
-        const timeout = setTimeout(() => {
-            ScrollTrigger.refresh();
-        }, 500);
+        // OPTIMIZACIÓN: En lugar de un setTimeout arbitrario de 500ms, 
+        // le decimos a ScrollTrigger que se recalcule de forma segura 
+        // SOLO después de que el navegador termine de pintar las imágenes.
+        const handleLoad = () => ScrollTrigger.refresh();
+        window.addEventListener('load', handleLoad);
 
-        return () => clearTimeout(timeout); // Limpieza de memoria
+        // Al no retornar nada explícitamente aquí (ningún return () => ...), 
+        // useGSAP automáticamente matará los ScrollTriggers cuando te vayas de la página,
+        // eliminando la fuga de memoria por completo.
 
     }, { scope: sectionRef });
 
@@ -46,7 +45,7 @@ const FeatureShowcase = () => {
         <div ref={sectionRef} className="w-full bg-[#FAF7F4] pt-24 pb-32 overflow-hidden text-gray-900">
             <div className="max-w-[1200px] mx-auto px-6 md:px-12 flex flex-col gap-32">
                 
-                {/* Bloque 1: Texto Izquierda, Imagen Derecha */}
+                {/* --- PRIMERA SECCIÓN --- */}
                 <div className="flex flex-col md:flex-row items-center gap-12 md:gap-24">
                     <div className="flex-1 space-y-6">
                         <span className="gs-reveal inline-block text-xs font-bold tracking-widest text-gray-500 uppercase">
@@ -70,7 +69,7 @@ const FeatureShowcase = () => {
                     </div>
                 </div>
 
-                {/* Bloque 2: Imagen Izquierda, Texto Derecha (Reversado) */}
+                {/* --- SEGUNDA SECCIÓN --- */}
                 <div className="flex flex-col md:flex-row-reverse items-center gap-12 md:gap-24">
                     <div className="flex-1 space-y-6">
                         <span className="gs-reveal inline-block text-xs font-bold tracking-widest text-gray-500 uppercase">
@@ -96,7 +95,7 @@ const FeatureShowcase = () => {
 
             </div>
 
-            {/* Bloque 3: Banner de Estadísticas */}
+            {/* --- TERCERA SECCIÓN (MÉTRICAS) --- */}
             <div className="mt-32 max-w-[1400px] mx-auto px-4">
                 <div className="relative w-full rounded-[32px] overflow-hidden bg-slate-900 text-white py-24 px-8 md:px-16 flex flex-col items-center text-center">
                     <img 

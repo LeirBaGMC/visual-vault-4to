@@ -1,83 +1,117 @@
 import os
 import requests
+import boto3
+import urllib.parse # <-- LIBRERÍA NUEVA PARA CODIFICAR URLs
+from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+# 1. Cargar credenciales desde tu archivo .env
+load_dotenv()
 
 # ==========================================
 # CONFIGURACIÓN DEL CTO
 # ==========================================
-NOMBRE_BUCKET = "visual-vault-4to-semestre" # 👈 Asegúrate de que sea tu nombre real de bucket
-REGION = "us-east-1"
+NOMBRE_BUCKET = os.getenv("S3_BUCKET_NAME", "visual-vault-4to-semestre")
+REGION = os.getenv("AWS_REGION", "us-east-1")
 URL_BASE_S3 = f"https://{NOMBRE_BUCKET}.s3.{REGION}.amazonaws.com"
-
-# La URL de tu servidor local FastAPI
 API_URL = "http://127.0.0.1:8000/api/v1/pins/"
 
-def sembrar_base_de_datos(carpeta_raiz="Pics"):
-    print("🚀 Iniciando protocolo de sembrado masivo de base de datos...")
+# Inicializamos el motor de subida de AWS
+try:
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=REGION
+    )
+except Exception as e:
+    print(f"❌ Error crítico al inicializar AWS S3. Revisa tu archivo .env: {e}")
+    exit()
+
+def sembrar_y_subir(carpeta_raiz="Pics"):
+    print("🚀 Iniciando Drone de Carga Masiva (Subida a S3 + Base de Datos)...")
     
     if not os.path.exists(carpeta_raiz):
-        print(f"❌ Error: No se encuentra la carpeta local '{carpeta_raiz}'.")
+        print(f"❌ Error: No se encuentra la carpeta '{carpeta_raiz}'. Ejecuta recolector.py primero.")
         return
 
     contador_exitos = 0
     
-    # 1. Obtener el inventario actual de la base de datos
-    print("[*] Consultando base de datos actual...")
-    respuesta_db = requests.get(API_URL)
-    titulos_existentes = set()
-    
-    if respuesta_db.status_code == 200:
-        pines_db = respuesta_db.json()
-        titulos_existentes = {pin["title"] for pin in pines_db}
-    
-    # 2. Iniciar escaneo local (UN SOLO BUCLE MAESTRO)
+    # Consultamos qué hay en la base de datos para no duplicar
+    print("[*] Verificando inventario actual...")
+    try:
+        respuesta_db = requests.get(API_URL)
+        urls_existentes = {pin["image_url"] for pin in respuesta_db.json()} if respuesta_db.status_code == 200 else set()
+    except Exception:
+        urls_existentes = set()
+        print("⚠️ Advertencia: No se pudo conectar a FastAPI. ¿Está encendido el servidor?")
+
     for raiz, directorios, archivos in os.walk(carpeta_raiz):
         for archivo in archivos:
-            if archivo.startswith('.'):
-                continue # Ignoramos archivos ocultos de sistema
+            if archivo.startswith('.'): 
+                continue
                 
-            # Formateamos el título (ej: "000001.jpg" -> "Pin 000001")
-            titulo_limpio = f"Pin {archivo.replace('.jpg', '').replace('.png', '')}"
+            partes_ruta = os.path.relpath(raiz, carpeta_raiz).split(os.sep)
+            categoria = partes_ruta[0].replace('_', ' ').title()
             
-            # --- LA MAGIA ANTI-DUPLICADOS ---
-            # Si el título ya está en la BD, saltamos a la siguiente imagen inmediatamente
-            if titulo_limpio in titulos_existentes:
-                print(f"[-] Saltando {titulo_limpio} (Ya existe en BD)")
+            # Construimos la ruta exacta que tendrá en S3
+            ruta_s3 = f"{carpeta_raiz}/{categoria}/{archivo}".replace("\\", "/")
+            
+            # --- LA MAGIA ANTIMANCHAS NEGRAS ---
+            # urllib.parse.quote transforma espacios en %20, y safe='/' protege las carpetas
+            ruta_s3_segura = urllib.parse.quote(ruta_s3, safe='/')
+            url_imagen_aws = f"{URL_BASE_S3}/{ruta_s3_segura}"
+
+            # Filtro anti-duplicados
+            if url_imagen_aws in urls_existentes:
+                print(f"[-] Saltando {archivo} (Ya existe en tu bóveda)")
                 continue
             
-            # Si llegamos aquí, es un Pin NUEVO (como los de la nueva carpeta Outfits)
-            
-            # Extraemos la categoría basándonos en el nombre de la subcarpeta
-            partes_ruta = os.path.relpath(raiz, carpeta_raiz).split(os.sep)
-            categoria = partes_ruta[0]
-            
-            # Construimos la URL exacta que generó AWS S3
-            ruta_s3 = f"{carpeta_raiz}/{categoria}/{archivo}".replace("\\", "/")
-            url_imagen_aws = f"{URL_BASE_S3}/{ruta_s3}"
+            ruta_local = os.path.join(raiz, archivo)
+            titulo_frontend = f"Concepto de {categoria}"
 
-            # Armamos el paquete de datos exacto que espera tu FastAPI
+            # ========================================================
+            # PASO 1: SUBIR FÍSICAMENTE LA IMAGEN AL BUCKET DE AWS S3
+            # ========================================================
+            try:
+                # Le decimos a AWS que es una imagen para que se vea en el navegador y no se descargue como archivo
+                content_type = "image/png" if archivo.lower().endswith(".png") else "image/jpeg"
+                
+                s3_client.upload_file(
+                    ruta_local, 
+                    NOMBRE_BUCKET, 
+                    ruta_s3,
+                    ExtraArgs={'ContentType': content_type}
+                )
+                print(f"☁️ [S3] Archivo subido con éxito: {archivo}")
+            except ClientError as e:
+                print(f"❌ [AWS Error] Fallo al subir {archivo} al bucket: {e}")
+                continue # Si falla la subida, saltamos a la siguiente imagen
+
+            # ========================================================
+            # PASO 2: INYECTAR LOS DATOS Y LA URL EN FASTAPI
+            # ========================================================
             paquete_datos = {
-                "title": titulo_limpio,
-                "description": f"Contenido extraído para la sección de {categoria.replace('_', ' ').title()}",
-                "image_url": url_imagen_aws,
-                "category": categoria.replace('_', ' ').title(),
+                "title": titulo_frontend,
+                "description": f"Referencia visual de alta resolución extraída para la sección de {categoria}.",
+                "image_url": url_imagen_aws, # <-- USAMOS LA URL SEGURA
+                "category": categoria,
                 "is_sensitive": False,
                 "creator_id": 1
             }
             
-            # Disparamos el POST a tu propio backend
             try:
                 respuesta = requests.post(API_URL, json=paquete_datos)
                 if respuesta.status_code == 200:
-                    print(f"✅ Éxito: {titulo_limpio} de la categoría '{categoria}' registrado.")
+                    print(f"✅ [BD] Registrado en el sistema como '{titulo_frontend}'")
                     contador_exitos += 1
                 else:
-                    print(f"⚠️ Fallo al subir {archivo}: {respuesta.text}")
+                    print(f"⚠️ [BD Fallo]: {respuesta.text}")
             except Exception as e:
-                print(f"❌ Error de conexión con FastAPI: {e}")
+                print(f"❌ Error de conexión con la Base de Datos: {e}")
                 
-    print("=" * 40)
-    print(f"🎉 ¡Sembrado completado! Se inyectaron {contador_exitos} pines nuevos en la base de datos.")
+    print("=" * 50)
+    print(f"🎉 ¡Operación completada! Se subieron {contador_exitos} imágenes a S3 y se registraron en el sistema.")
 
 if __name__ == "__main__":
-    # Asegúrate de que FastAPI esté corriendo en otra terminal antes de ejecutar esto
-    sembrar_base_de_datos()
+    sembrar_y_subir()

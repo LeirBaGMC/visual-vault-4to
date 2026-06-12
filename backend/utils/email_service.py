@@ -5,10 +5,13 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from dotenv import load_dotenv
 
 # 1. Forzamos la lectura del archivo .env desde la raíz de la carpeta actual
+BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = Path('.') / '.env'
+
 load_dotenv(dotenv_path=env_path)
 
 # DEBUG: Esto imprimirá en tu consola qué correo está leyendo. Si dice "None", tu archivo .env no está bien ubicado.
+correo_cargado = os.getenv('MAIL_USERNAME', 'No detectado')
 print(f"📧 Iniciando servicio SMTP con el correo: {os.getenv('MAIL_USERNAME')}")
 
 # 2. Configuración del servidor SMTP (Con textos por defecto para evitar que FastAPI colapse)
