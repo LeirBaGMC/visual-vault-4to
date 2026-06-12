@@ -1,151 +1,169 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-// 1. Importamos el hook de Microsoft
-import { useMsal } from "@azure/msal-react";
+import { useNavigate } from 'react-router-dom';
+import { Search, X, Image as ImageIcon } from 'lucide-react'; 
+
+// 1. EL PATRÓN DE TAMAÑOS (El secreto del estilo editorial)
+// Al repetirse, crea ese efecto "desordenado" pero perfectamente encajado.
+const GRID_PATTERNS = [
+    "col-span-1 md:col-span-2 md:row-span-2", // 1. Grande (Cuadrado/Rectángulo)
+    "col-span-1 md:row-span-2",               // 2. Vertical alto
+    "col-span-1 md:row-span-1",               // 3. Normal
+    "col-span-1 md:row-span-1",               // 4. Normal
+    "col-span-1 md:col-span-2 md:row-span-1", // 5. Horizontal ancho
+    "col-span-1 md:row-span-2",               // 6. Vertical alto
+    "col-span-1 md:col-span-2 md:row-span-2", // 7. Grande
+    "col-span-1 md:row-span-1",               // 8. Normal
+    "col-span-1 md:row-span-1",               // 9. Normal
+];
 
 const Perfil = () => {
-    const [user, setUser] = useState(null);
     const [savedPins, setSavedPins] = useState([]);
+    const [filteredPins, setFilteredPins] = useState([]); 
+    const [searchTerm, setSearchTerm] = useState("");
     const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
+    const [searchOpen, setSearchOpen] = useState(false); 
     
-    // 2. Inicializamos la instancia de Microsoft
-    const { instance } = useMsal();
+    const navigate = useNavigate();
 
+    // Carga de datos
     useEffect(() => {
         const fetchProfileData = async () => {
-            const token = localStorage.getItem('token');
-            const savedUsername = localStorage.getItem('username');
-
-            if (!token) {
-                navigate('/login');
-                return;
-            }
-
-            setUser({ nombre: savedUsername });
-
             try {
-                const pinsResponse = await fetch('http://localhost:8000/api/v1/pins/');
-                if (pinsResponse.ok) {
-                    const pinsData = await pinsResponse.json();
-                    setSavedPins(pinsData.slice(0, 8)); 
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+                const response = await fetch(`${apiUrl}/pins/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setSavedPins(data); 
+                    setFilteredPins(data); 
                 }
             } catch (error) {
-                console.error(error);
+                console.error("Error cargando base de datos:", error);
             } finally {
                 setIsLoading(false);
             }
         };
-
         fetchProfileData();
-    }, [navigate]);
+    }, []);
 
-    // 3. ACTUALIZAMOS LA FUNCIÓN DE CERRAR SESIÓN
-    const handleLogout = () => {
-        // Borramos los datos locales de Visual Vault
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        
-        // Cerramos la sesión en los servidores de Microsoft y redirigimos al Login
-        instance.logoutRedirect({
-            postLogoutRedirectUri: "http://localhost:5173/login"
-        });
-    };
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-[#FAF7F4] flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin"></div>
-            </div>
-        );
-    }
+    // Lógica del Buscador en tiempo real
+    useEffect(() => {
+        if (searchTerm.trim() === "") {
+            setFilteredPins(savedPins);
+        } else {
+            const lowerCaseSearch = searchTerm.toLowerCase();
+            const filtered = savedPins.filter(pin => 
+                pin.title?.toLowerCase().includes(lowerCaseSearch) || 
+                pin.category?.toLowerCase().includes(lowerCaseSearch)
+            );
+            setFilteredPins(filtered);
+        }
+    }, [searchTerm, savedPins]);
 
     return (
-        <div className="min-h-screen bg-[#FAF7F4] font-sans pb-24">
+        <div className="min-h-screen w-full bg-[#121212] relative font-sans select-none pb-12">
             
-            <nav className="w-full h-20 px-8 flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-                <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold shadow-inner">
-                        V
+            {/* --- CONTENEDOR FLOTANTE DEL BUSCADOR --- */}
+            <div className="fixed top-8 left-0 w-full flex justify-center items-center z-[50] pointer-events-none">
+                <div 
+                    className={`flex items-center backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-[0_25px_60px_rgba(0,0,0,0.7)] overflow-hidden border border-white/10 pointer-events-auto rounded-full justify-center
+                        ${searchOpen 
+                            ? 'w-[480px] h-11 bg-[#12131a]/95 px-4' 
+                            : 'w-10 h-10 bg-white/5 cursor-pointer hover:bg-white/15 hover:scale-105 active:scale-95' 
+                        }
+                    `}
+                    onClick={() => { if (!searchOpen) setSearchOpen(true); }}
+                >
+                    <div className="flex items-center justify-center shrink-0">
+                        <Search 
+                            className={`transition-colors duration-300 ${searchOpen ? 'w-[16px] h-[16px] text-slate-400' : 'w-[15px] h-[15px] text-white/80'}`} 
+                            strokeWidth={2.5} 
+                        />
                     </div>
-                    <span className="text-xl font-black text-slate-900 tracking-tight hidden md:block">
-                        Visual Vault
-                    </span>
-                </Link>
+                    
+                    <input 
+                        type="text" 
+                        placeholder="Buscar referencias, títulos o categorías..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className={`bg-transparent outline-none text-white font-semibold placeholder:text-slate-500 text-xs transition-all duration-500 
+                            ${searchOpen 
+                                ? 'w-full ml-3 opacity-100 pointer-events-auto' 
+                                : 'w-0 opacity-0 pointer-events-none'
+                            }
+                        `}
+                    />
 
-                <div className="flex items-center gap-6">
-                    <button className="font-semibold text-slate-600 hover:text-slate-900 transition-colors">
-                        Explorar Feed
-                    </button>
-                    <button 
-                        onClick={handleLogout}
-                        className="h-10 px-6 rounded-full bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 hover:text-slate-900 transition-all"
-                    >
-                        Cerrar Sesión
-                    </button>
-                </div>
-            </nav>
-
-            <header className="w-full max-w-5xl mx-auto mt-16 px-6 flex flex-col items-center text-center">
-                <div className="w-28 h-28 rounded-full bg-slate-900 flex items-center justify-center text-white text-4xl font-display font-medium shadow-2xl mb-6 ring-4 ring-white uppercase">
-                    {user?.nombre ? user.nombre.charAt(0) : 'V'}
-                </div>
-                
-                <h1 className="text-4xl font-display font-bold text-slate-900 tracking-tight mb-2">
-                    {user?.nombre || "Usuario"}
-                </h1>
-                
-                <div className="flex items-center gap-8 border-b border-slate-200 w-full justify-center mt-8">
-                    <button className="pb-4 border-b-2 border-slate-900 text-slate-900 font-bold">
-                        Mi Bóveda ({savedPins.length})
-                    </button>
-                    <button className="pb-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-semibold transition-colors">
-                        Pines Subidos
-                    </button>
-                </div>
-            </header>
-
-            <main className="w-full max-w-[1400px] mx-auto mt-12 px-6">
-                {savedPins.length > 0 ? (
-                    <div className="columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
-                        {savedPins.map((pin) => (
-                            <div key={pin.id} className="relative group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 break-inside-avoid cursor-pointer">
-                                <img 
-                                    src={pin.image_url} 
-                                    alt={pin.title || "Referencia visual"} 
-                                    className="w-full object-cover"
-                                    loading="lazy"
-                                />
-                                <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-colors duration-300 flex flex-col justify-between p-4 opacity-0 group-hover:opacity-100">
-                                    <div className="flex justify-end">
-                                        <button className="bg-white text-slate-900 text-xs font-bold px-4 py-2 rounded-full hover:bg-slate-100 shadow-lg">
-                                            Guardado
-                                        </button>
-                                    </div>
-                                    <h3 className="text-white font-semibold truncate drop-shadow-md">
-                                        {pin.title || "Sin título"}
-                                    </h3>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="w-full py-32 flex flex-col items-center justify-center text-center">
-                        <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mb-6">
-                            <span className="text-3xl text-slate-300">🗂️</span>
-                        </div>
-                        <h3 className="text-2xl font-display font-semibold text-slate-900 mb-2">
-                            Tu bóveda está vacía
-                        </h3>
-                        <p className="text-slate-500 max-w-sm mb-8">
-                            Aún no has guardado ninguna referencia. Explora el feed y empieza a construir tu biblioteca visual.
-                        </p>
-                        <button className="h-12 px-8 bg-slate-900 text-white font-bold rounded-full hover:bg-slate-800 transition-colors shadow-lg">
-                            Ir a Explorar
+                    {searchOpen && (
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation(); 
+                                setSearchOpen(false);
+                                setSearchTerm(""); 
+                            }}
+                            className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors flex items-center justify-center shrink-0"
+                        >
+                            <X className="w-4 h-4" strokeWidth={2.5} />
                         </button>
+                    )}
+                </div>
+            </div>
+
+            {/* --- CONTENIDO PRINCIPAL (GRID DENSO) --- */}
+            <div className="pt-28 px-4 md:px-8 w-full max-w-[1600px] mx-auto">
+                {isLoading ? (
+                    <div className="w-full h-[60vh] flex items-center justify-center">
+                        <div className="w-10 h-10 border-4 border-slate-800 border-t-white rounded-full animate-spin"></div>
+                    </div>
+                ) : filteredPins.length > 0 ? (
+                    
+                    /* AQUÍ SUCEDE LA MAGIA: grid-flow-dense y auto-rows para fijar la altura base */
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[220px] md:auto-rows-[280px] grid-flow-dense">
+                        {filteredPins.map((pin, index) => {
+                            // Asignamos la clase de tamaño (span) basándonos en la posición
+                            const patternClass = GRID_PATTERNS[index % GRID_PATTERNS.length];
+
+                            return (
+                                <div 
+                                    key={pin.id}
+                                    onClick={() => navigate(`/pin/${pin.id}`)}
+                                    style={{ backgroundImage: `url(${pin.image_url})` }}
+                                    className={`group relative bg-cover bg-center rounded-sm overflow-hidden shadow-lg cursor-pointer transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl hover:z-10 ${patternClass}`}
+                                >
+                                    {/* Gradiente SIEMPRE visible para oscurecer la base y que las palabras resalten */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none opacity-90"></div>
+                                    
+                                    {/* LAS PALABRAS (Título y Categoría) - Siempre Visibles */}
+                                    <div className="absolute bottom-6 left-6 text-gray-100 uppercase z-10 pointer-events-none">
+                                        <h1 className="text-xl md:text-3xl font-display font-bold tracking-widest drop-shadow-lg mb-1">
+                                            {pin.title}
+                                        </h1>
+                                        <h3 className="text-xs md:text-sm font-sans font-semibold tracking-widest text-gray-300">
+                                            {pin.category || 'Inspiración'}
+                                        </h3>
+                                    </div>
+
+                                    {/* Capa extra al hacer Hover (Opcional, hace que se vea más interactivo) */}
+                                    <div className="absolute inset-0 h-full w-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex items-center justify-center">
+                                        <div className="flex flex-col items-center justify-center text-gray-100 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-out">
+                                            <ImageIcon className="w-8 h-8 mb-2 text-white" strokeWidth={1.5} />
+                                            <h2 className="text-sm font-display font-bold uppercase tracking-widest">
+                                                Abrir Pin
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                ) : (
+                    <div className="w-full h-[60vh] flex flex-col items-center justify-center text-center">
+                        <h3 className="text-xl font-semibold text-slate-400">
+                            {searchTerm ? "No hay resultados para tu búsqueda." : "No hay imágenes en la bóveda."}
+                        </h3>
                     </div>
                 )}
-            </main>
+            </div>
         </div>
     );
 };

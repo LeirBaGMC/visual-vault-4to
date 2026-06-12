@@ -2,10 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, s
 from sqlmodel import Session, select
 from bdd import get_session
 from models.schemas import Pin, PinCreate, User
-from utils.aws_client import subir_imagen_s3, analizar_imagen_nsfw
-
-
-
+from utils.aws_client import subir_imagen_s3, analizar_imagen_nsfw, eliminar_imagen_s3_por_url
+from core.security import obtener_usuario_actual
 
 router = APIRouter(
     prefix="/api/v1/pins",
@@ -14,12 +12,13 @@ router = APIRouter(
 
 @router.post("/")
 def crear_pin_manual(pin_data: PinCreate, db: Session = Depends(get_session)):
-    
+    # CORREGIDO: Se mapea explícitamente creator_id
     nuevo_pin = Pin(
         title=pin_data.title,
         description=pin_data.description,
         image_url=pin_data.image_url,
-        category=pin_data.category
+        category=pin_data.category,
+        creator_id=pin_data.creator_id  
     )
     
     db.add(nuevo_pin)
@@ -30,27 +29,30 @@ def crear_pin_manual(pin_data: PinCreate, db: Session = Depends(get_session)):
 
 @router.get("/")
 def obtener_todos_los_pines(db: Session = Depends(get_session)):
-    
-    consulta = select(Pin)
-    pines = db.exec(consulta).all()
-    return pines
+    return db.exec(select(Pin)).all()
+
+@router.get("/{pin_id}")
+def get_pin_by_id(pin_id: int, session: Session = Depends(get_session)):
+    pin = session.get(Pin, pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="La imagen no fue encontrada.")
+    return pin
 
 @router.delete("/{pin_id}")
 def eliminar_pin(pin_id: int, db: Session = Depends(get_session)):
-   
     pin_a_eliminar = db.get(Pin, pin_id)
-    
     if not pin_a_eliminar:
         raise HTTPException(status_code=404, detail="Pin no encontrado")
     
+    # OPTIMIZACIÓN: Remover el asset de AWS S3 antes de limpiar la fila de la BD
+    eliminar_imagen_s3_por_url(pin_a_eliminar.image_url)
+    
     db.delete(pin_a_eliminar)
     db.commit()
-
-    return {"mensaje": f"Pin {pin_id} eliminado exitosamente de la bóveda."}
+    return {"mensaje": f"Pin {pin_id} eliminado exitosamente de la bóveda y de S3."}
 
 @router.delete("/categoria/{nombre_categoria}")
 def eliminar_pines_por_categoria(nombre_categoria: str, db: Session = Depends(get_session)):
- 
     consulta = select(Pin).where(Pin.category == nombre_categoria)
     pines_a_eliminar = db.exec(consulta).all()
     
@@ -59,35 +61,30 @@ def eliminar_pines_por_categoria(nombre_categoria: str, db: Session = Depends(ge
     
     cantidad = len(pines_a_eliminar)
     for pin in pines_a_eliminar:
+        # OPTIMIZACIÓN: Limpieza masiva en S3
+        eliminar_imagen_s3_por_url(pin.image_url)
         db.delete(pin)
         
     db.commit()
-    
-    return {"mensaje": f"¡Operación exitosa! Se eliminaron {cantidad} pines de la categoría '{nombre_categoria}'."}
+    return {"mensaje": f"¡Operación exitosa! Se eliminaron {cantidad} pines y sus archivos en S3 de la categoría '{nombre_categoria}'."}
 
 @router.post("/upload/")
 def subir_nuevo_pin(
     title: str = Form(...),
     description: str = Form(...),
     category: str = Form(...),
-    creator_id: int = Form(...), 
     file: UploadFile = File(...),
+    current_user: User = Depends(obtener_usuario_actual), 
     db: Session = Depends(get_session)
 ):
-    
     contenido_archivo = file.file.read()
-    
-
     es_segura, etiquetas = analizar_imagen_nsfw(contenido_archivo)
     
     if not es_segura:
-        
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail=f"Bloqueo de seguridad: La imagen contiene material no permitido ({', '.join(etiquetas)})."
         )
-    # ==========================================
-    
     
     url_publica_aws = subir_imagen_s3(
         archivo_bytes=contenido_archivo, 
@@ -98,18 +95,15 @@ def subir_nuevo_pin(
     if not url_publica_aws:
         raise HTTPException(status_code=500, detail="Fallo catastrófico al subir a la nube.")
         
-    
     nuevo_pin = Pin(
         title=title,
         description=description,
         category=category,
         image_url=url_publica_aws,
-        creator_id=creator_id,
+        creator_id=current_user.id,
         is_sensitive=False 
     )
 
-    
-   
     db.add(nuevo_pin)
     db.commit()
     db.refresh(nuevo_pin)

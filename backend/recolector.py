@@ -1,6 +1,7 @@
 import os
 import sys
 import requests
+import uuid
 from playwright.sync_api import sync_playwright
 
 # ==========================================
@@ -13,14 +14,16 @@ LIMIT_IMAGENES_POR_SECCION = 15  # Ajusta este número según lo que necesites
 # Las claves del diccionario serán los nombres de las carpetas 
 # (y posteriormente las categorías en tu Base de Datos)
 SECCIONES_BUSQUEDAS = {
-   "Outfits": "aesthetic outfits",
-   
+    "Outfits": "aesthetic outfits",
+    "Ciberseguridad": "cybersecurity aesthetic",
+    "Arquitectura": "modern architecture"
 }
 
 def descargar_imagen(url, ruta_guardado):
-    """Descarga la imagen buscando la máxima calidad y la guarda en el disco."""
+    """Descarga la imagen forzando la resolución HD de Pinterest (736px)."""
     try:
-        url_hd = url.replace("/736x/", "/originals/").replace("/236x/", "/originals/")
+        # Reemplazamos la miniatura (236x) por la versión grande (736x)
+        url_hd = url.replace("/236x/", "/736x/")
         response = requests.get(url_hd, stream=True, timeout=10)
         
         if response.status_code == 200:
@@ -28,21 +31,14 @@ def descargar_imagen(url, ruta_guardado):
                 for chunk in response.iter_content(1024):
                     f.write(chunk)
             return True
-            
-        # Fallback si no existe la versión original
-        response_fallback = requests.get(url, stream=True, timeout=10)
-        if response_fallback.status_code == 200:
-            with open(ruta_guardado, 'wb') as f:
-                for chunk in response_fallback.iter_content(1024):
-                    f.write(chunk)
-            return True
-    except Exception:
+    except Exception as e:
+        print(f"⚠️ Error menor al descargar imagen: {e}")
         pass
     return False
 
 def ejecutar_recolector():
     os.makedirs(CARPETA_RAIZ, exist_ok=True)
-    print("🤖 Iniciando Drone Recolector de Imágenes...")
+    print("🤖 Iniciando Drone Recolector de Imágenes en HD...")
     
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -75,25 +71,22 @@ def ejecutar_recolector():
                 page.wait_for_timeout(2000)
 
             lista_urls = list(urls_encontradas)[:LIMIT_IMAGENES_POR_SECCION]
-            print(f"[+] Encontrados {len(lista_urls)} objetivos. Extrayendo archivos locales...")
+            print(f"[+] Encontrados {len(lista_urls)} objetivos. Extrayendo archivos locales en alta resolución...")
 
             exitos = 0
             for url_img in lista_urls:
-                # Extraemos el código único de la URL de Pinterest
-                nombre_archivo = url_img.split("/")[-1] 
+                # 1. ARCHIVOS SEGUROS: Usamos un UUID puro para guardar la imagen
+                # Esto garantiza que no haya sobrescritura local ni colisiones en S3
+                nombre_archivo = f"{uuid.uuid4()}.jpg" 
                 ruta_final = os.path.join(carpeta_categoria, nombre_archivo)
-                
-                # Si el archivo ya existe físicamente, lo saltamos
-                if os.path.exists(ruta_final):
-                    print(f"    [-] Saltando {nombre_archivo} (Ya descargado)")
-                    continue
                 
                 if descargar_imagen(url_img, ruta_final):
                     exitos += 1
+                    
             print(f"✅ {categoria} guardada en local ({exitos} imágenes).")
 
         browser.close()
-        print("\n Recolección finalizada. Tu carpeta 'Pics' está lista para ser subida a S3.")
+        print("\n🎉 Recolección finalizada. Tu carpeta 'Pics' está lista para ser subida a S3.")
 
 if __name__ == "__main__":
     ejecutar_recolector()

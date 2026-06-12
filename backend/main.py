@@ -6,7 +6,7 @@ from bdd import init_db, get_session
 from models.schemas import Pin, PinCreate
 from routers import pins, users, auth
 
-# Definimos qué hace el servidor al prenderse
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[SERVER] Creando/Verificando base de datos SQLite...")
@@ -22,10 +22,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Permisos para que el HTML/React pueda hablar con este archivo después
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

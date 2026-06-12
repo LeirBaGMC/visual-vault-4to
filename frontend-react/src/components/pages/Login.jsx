@@ -1,76 +1,80 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../authConfig"; 
+import { Button, Input } from "@heroui/react";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isVisible, setIsVisible] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
     const [bgImage, setBgImage] = useState(null);
+    
     const navigate = useNavigate();
     const { instance } = useMsal();
+    const procesandoAuth = useRef(false); // Evita ejecuciones concurrentes de la promesa
 
-    // 1. EL ATRAPADOR DEL REDIRECT DE MICROSOFT
+    // 1. Manejo del Login de Microsoft Corregido
     useEffect(() => {
-        // Cuando la página recarga tras venir de Microsoft, esto atrapa el Token
+        if (procesandoAuth.current) return;
+
         instance.handleRedirectPromise().then(async (msResponse) => {
-            if (msResponse) {
+            if (msResponse && !procesandoAuth.current) {
+                procesandoAuth.current = true;
                 setIsLoading(true);
                 try {
-                    const msToken = msResponse.accessToken;
                     const formData = new URLSearchParams();
-                    formData.append('ms_token', msToken);
+                    formData.append('ms_token', msResponse.accessToken);
 
-                    const response = await fetch('http://localhost:8000/api/v1/microsoft', {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/microsoft`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: formData
                     });
 
                     const data = await response.json();
-
                     if (!response.ok) throw new Error(data.detail || "Error validando con el servidor");
 
-                    // ¡Éxito!
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('username', data.username);
                     navigate('/perfil');
                 } catch (err) {
-                    setError("Error al procesar el login de Microsoft");
+                    console.error(err);
+                    setError("...");
+                    procesandoAuth.current = false;
                 } finally {
                     setIsLoading(false);
                 }
             }
-        }).catch(err => {
+        }).catch((err) => {
             console.error(err);
+            procesandoAuth.current = false;
         });
     }, [instance, navigate]);
 
-    // 2. Traer imagen de fondo
+    // 2. Fondo Aleatorio Dinámico
     useEffect(() => {
         const fetchRandomPin = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/v1/pins/');
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/pins`);
                 if (!response.ok) throw new Error("Error de red");
                 const data = await response.json();
                 
-                if (data && data.length > 0) {
-                    const highResPins = data.filter(pin => pin.image_url && pin.image_url.includes('w=2000'));
+                if (data?.length > 0) {
+                    const highResPins = data.filter(pin => pin.image_url?.includes('w=2000'));
                     const pool = highResPins.length > 0 ? highResPins : data;
-                    const randomPin = pool[Math.floor(Math.random() * pool.length)];
-                    setBgImage(randomPin.image_url);
+                    setBgImage(pool[Math.floor(Math.random() * pool.length)].image_url);
                 }
             } catch (error) {
-                console.error(error);
+                console.error("Error al cargar fondo:", error);
             }
         };
         fetchRandomPin();
     }, []);
 
-    // 3. Login clásico
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -81,7 +85,7 @@ const Login = () => {
             formData.append('username', email); 
             formData.append('password', password);
 
-            const response = await fetch('http://localhost:8000/api/v1/login', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData
@@ -94,70 +98,65 @@ const Login = () => {
             localStorage.setItem('username', data.username); 
             navigate('/perfil'); 
         } catch (err) {
+            console.error(err);
             setError(err.message);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // 4. EL BOTÓN DE MICROSOFT AHORA HACE REDIRECT (No Popup)
-    const handleMicrosoftLogin = () => {
-        instance.loginRedirect(loginRequest);
-    };
-
     return (
         <div className="min-h-screen w-full flex bg-[#FAF7F4] font-sans">
-            
-            {/* LADO IZQUIERDO: Formulario */}
             <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-16 lg:px-24 relative">
-                
-                <Link to="/" className="absolute top-8 left-8 md:left-12 flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer">
+                <Link to="/" className="absolute top-8 left-8 flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer">
                     <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-inner">V</div>
                     <span className="text-xl font-black text-slate-900 tracking-tight hidden sm:block">Visual Vault</span>
                 </Link>
 
                 <div className="max-w-md w-full mx-auto mt-16">
-                    <h2 className="text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight mb-2">
-                        Bienvenido de vuelta
-                    </h2>
-                    <p className="text-slate-500 mb-8">
-                        Ingresa a tu bóveda y continúa construyendo.
-                    </p>
+                    <h2 className="text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight mb-2">Bienvenido de vuelta</h2>
+                    <p className="text-slate-500 mb-8">Ingresa a tu bóveda y continúa construyendo.</p>
 
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium animate-in fade-in">
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
                             {error}
                         </div>
                     )}
 
                     <form className="space-y-5" onSubmit={handleSubmit}>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700">Correo Electrónico</label>
-                            <input 
-                                type="email" required placeholder="tu@correo.com"
-                                className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
-                                value={email} onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
+                        <Input 
+                            type="email" 
+                            label="Correo Electrónico" 
+                            placeholder="tu@correo.com"
+                            variant="bordered" radius="md" size="lg" isRequired
+                            value={email} onChange={(e) => setEmail(e.target.value)}
+                            classNames={{ label: "font-semibold text-slate-700" }}
+                        />
 
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-slate-700">Contraseña</label>
-                                <a href="#" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">¿Olvidaste tu contraseña?</a>
-                            </div>
-                            <input 
-                                type="password" required placeholder="••••••••"
-                                className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                        <div className="space-y-1">
+                            <Input 
+                                type={isVisible ? "text" : "password"}
+                                label="Contraseña" placeholder="••••••••"
+                                variant="bordered" radius="md" size="lg" isRequired
                                 value={password} onChange={(e) => setPassword(e.target.value)}
+                                classNames={{ label: "font-semibold text-slate-700" }}
+                                endContent={
+                                    <button className="focus:outline-none" type="button" onClick={() => setIsVisible(!isVisible)}>
+                                        {isVisible ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
+                                    </button>
+                                }
                             />
+                            <div className="flex justify-end pt-1">
+                                <a href="#" className="text-sm text-slate-500 hover:text-slate-900 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
+                            </div>
                         </div>
 
-                        <button 
-                            type="submit" disabled={isLoading}
-                            className="w-full h-12 mt-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        <Button 
+                            type="submit" color="primary" size="lg" radius="md" isLoading={isLoading}
+                            className="w-full bg-slate-900 font-bold hover:bg-slate-800 text-md mt-2"
                         >
-                            {isLoading ? 'Cargando...' : 'Entrar a la Bóveda'}
-                        </button>
+                            Entrar a la Bóveda
+                        </Button>
                     </form>
 
                     <div className="mt-6 flex items-center justify-between">
@@ -166,17 +165,19 @@ const Login = () => {
                         <span className="w-1/5 border-b border-slate-200 lg:w-1/4"></span>
                     </div>
 
-                    <button 
+                    <Button 
                         type="button" 
-                        onClick={handleMicrosoftLogin}
-                        disabled={isLoading}
-                        className="w-full h-12 mt-6 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-3 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        onPress={() => instance.loginRedirect(loginRequest)}
+                        isDisabled={isLoading} variant="bordered" size="lg" radius="md"
+                        className="w-full font-bold text-slate-700 border-slate-200 hover:bg-slate-50 mt-6"
+                        startContent={
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 23 23">
+                                <path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/>
+                            </svg>
+                        }
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 23 23">
-                            <path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/>
-                        </svg>
                         Microsoft Outlook
-                    </button>
+                    </Button>
 
                     <p className="text-center text-slate-500 mt-8 text-sm">
                         ¿No tienes una cuenta? <Link to="/register" className="font-bold text-slate-900 hover:underline">Regístrate gratis</Link>
@@ -184,11 +185,10 @@ const Login = () => {
                 </div>
             </div>
 
-            {/* LADO DERECHO: Visual */}
             <div className="hidden lg:block lg:w-1/2 p-4">
                 <div className="w-full h-full rounded-[32px] overflow-hidden relative shadow-2xl bg-slate-800">
                     {bgImage ? (
-                        <img src={bgImage} alt="Visual Vault Inspiration" className="w-full h-full object-cover animate-in fade-in duration-1000" />
+                        <img src={bgImage} alt="Visual Vault Inspiration" className="w-full h-full object-cover" />
                     ) : (
                         <div className="w-full h-full animate-pulse bg-slate-700"></div>
                     )}
