@@ -4,27 +4,54 @@ import { useParams, useNavigate } from 'react-router-dom';
 const PinPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    
     const [pin, setPin] = useState(null);
+    const [relatedPins, setRelatedPins] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isLiked, setIsLiked] = useState(false);
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
     useEffect(() => {
-        const fetchPinDetail = async () => {
+        const fetchData = async () => {
+            setLoading(true);
             try {
-                const response = await fetch(`${apiUrl}/pins/${id}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setPin(data);
+                // 1. Obtener el Pin actual
+                const responsePin = await fetch(`${apiUrl}/pins/${id}`);
+                if (responsePin.ok) {
+                    const pinData = await responsePin.json();
+                    setPin(pinData);
+                }
+
+                // 2. Obtener el resto de la bóveda para el Masonry derecho
+                const responseAll = await fetch(`${apiUrl}/pins/`);
+                if (responseAll.ok) {
+                    const allData = await responseAll.json();
+                    // Filtramos el pin actual y mezclamos el resto para descubrimiento
+                    const filtered = allData
+                        .filter(p => p.id !== parseInt(id))
+                        .sort(() => 0.5 - Math.random());
+                    setRelatedPins(filtered);
                 }
             } catch (error) {
-                console.error("Error al cargar el detalle del pin:", error);
+                console.error("Error al cargar los datos de la bóveda:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchPinDetail();
+
+        fetchData();
+        // Resetear estado visual al cambiar de pin
+        setIsLiked(false);
+        // Hacer scroll automático arriba cuando cambia el ID
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [id, apiUrl]);
+
+    const copiarEnlace = () => {
+        const urlPin = `${window.location.origin}/pin/${id}`;
+        navigator.clipboard.writeText(urlPin);
+        alert("¡Enlace copiado al portapapeles!");
+    };
 
     if (loading) {
         return (
@@ -34,94 +61,136 @@ const PinPage = () => {
         );
     }
 
-    if (!pin) return <div className="min-h-screen bg-[#090B0E] text-white p-8">Pin no encontrado.</div>;
+    if (!pin) return <div className="min-h-screen bg-[#090B0E] text-white p-8 flex items-center justify-center font-display text-2xl">Referencia no encontrada en la Bóveda.</div>;
 
     return (
-        <div className="min-h-screen bg-[#090B0E] pt-24 pb-12 px-4 md:px-8">
+        <div className="flex flex-col lg:flex-row min-h-screen bg-[#090B0E] text-white overflow-hidden">
             
-            {/* Botón Volver */}
-            <button 
-                onClick={() => navigate(-1)}
-                className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group w-fit"
-            >
-                <svg className="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span className="font-sans font-medium uppercase tracking-widest text-sm">Volver a la Bóveda</span>
-            </button>
-
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+            {/* =========================================
+                COLUMNA IZQUIERDA: FOCO DEL PIN ACTUAL
+               ========================================= */}
+            <div className="w-full lg:w-[45%] xl:w-[40%] h-auto lg:h-screen lg:overflow-y-auto hide-scrollbar flex flex-col border-r border-zinc-800/50 relative">
                 
-                {/* Lado Izquierdo: Imagen Principal */}
-                <div className="relative group rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-zinc-800/50 bg-zinc-900">
-                    <img 
-                        src={pin.image_url} 
-                        alt={pin.title} 
-                        className="w-full h-auto object-cover max-h-[85vh]"
-                    />
-                </div>
-
-                {/* Lado Derecho: Metadatos e Interacción */}
-                <div className="flex flex-col text-white py-4">
-                    
-                    {/* Top Bar: Iconos de Acción */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex gap-4">
-                            <button className="text-zinc-400 hover:text-red-500 transition-colors">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                            </button>
-                            <button className="text-zinc-400 hover:text-blue-400 transition-colors">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                            </button>
-                        </div>
-                        <button className="bg-white text-black font-bold uppercase tracking-widest text-sm px-6 py-3 rounded-full hover:bg-gray-200 transition-colors">
-                            Guardar
+                {/* BARRA DE ACCIONES SUPERIOR (Sticky para que siempre esté a la mano) */}
+                <div className="sticky top-0 z-50 bg-[#090B0E]/90 backdrop-blur-xl px-6 py-4 flex items-center justify-between border-b border-zinc-800/50">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => navigate(-1)} className="text-zinc-400 hover:text-white transition-colors hover:scale-110 transform">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        </button>
+                        <button onClick={() => setIsLiked(!isLiked)} className={`transition-all transform hover:scale-110 ${isLiked ? 'text-red-500' : 'text-zinc-400 hover:text-white'}`}>
+                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </button>
+                        <button onClick={copiarEnlace} className="text-zinc-400 hover:text-white transition-all transform hover:scale-110">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                         </button>
                     </div>
+                    <button className="bg-[#E60023] hover:bg-red-700 text-white font-bold text-sm px-6 py-2.5 rounded-full transition-colors tracking-wide">
+                        Guardar
+                    </button>
+                </div>
 
-                    {/* Información Central */}
-                    <div className="mb-10">
-                        <span className="text-blue-500 text-xs font-bold tracking-widest uppercase mb-3 block">
+                {/* CONTENIDO DEL PIN */}
+                <div className="p-6 flex-1 flex flex-col">
+                    {/* Imagen Gigante */}
+                    <div className="w-full bg-zinc-900 rounded-3xl overflow-hidden mb-8 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+                        <img 
+                            src={pin.image_url} 
+                            alt={pin.title} 
+                            className="w-full h-auto object-cover max-h-[75vh]"
+                        />
+                    </div>
+
+                    {/* Metadatos */}
+                    <div className="flex-1 px-2">
+                        <span className="text-blue-500 text-xs font-bold tracking-widest uppercase mb-2 block">
                             {pin.category}
                         </span>
-                        <h1 className="text-4xl md:text-5xl font-display font-medium tracking-tight mb-6">
+                        <h1 className="text-3xl md:text-4xl font-display font-medium tracking-tight mb-4">
                             {pin.title}
                         </h1>
-                        <p className="text-zinc-400 font-sans text-lg leading-relaxed">
-                            {pin.description || `Referencia visual de alta resolución extraída para la sección de ${pin.category}. Visual Vault analiza y protege los metadatos de esta imagen.`}
+                        <p className="text-zinc-400 font-sans text-base leading-relaxed mb-8">
+                            {pin.description || "Referencia visual de alta resolución extraída del ecosistema."}
                         </p>
-                    </div>
 
-                    {/* Creador (Mockup visual) */}
-                    <div className="flex items-center gap-4 mb-10 pb-10 border-b border-zinc-800">
-                        <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center font-bold text-lg">
-                            MC
+                        {/* Creador */}
+                        <div className="flex items-center gap-4 mb-10 pb-8 border-b border-zinc-800">
+                            <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center font-bold text-lg">
+                                MC
+                            </div>
+                            <div>
+                                <p className="font-bold text-gray-200">Gabriel Minda Carrión</p>
+                                <p className="text-sm text-zinc-500">CTO & Curador</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-bold text-gray-200">Gabriel Minda Carrión</p>
-                            <p className="text-sm text-zinc-500">CTO & Curador</p>
+
+                        {/* Comentarios */}
+                        <div className="pb-10">
+                            <h3 className="text-xl font-display font-medium mb-6 flex justify-between">
+                                Comentarios <span className="text-zinc-600 text-sm">0 comentarios</span>
+                            </h3>
+                            <div className="relative">
+                                <input 
+                                    type="text" 
+                                    placeholder="Añade un análisis o comentario técnico..." 
+                                    className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl py-4 pl-4 pr-24 focus:outline-none focus:border-zinc-600 transition-colors placeholder-zinc-600"
+                                />
+                                <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition-colors">
+                                    Enviar
+                                </button>
+                            </div>
                         </div>
                     </div>
-
-                    {/* Comentarios Oscuros */}
-                    <div>
-                        <h3 className="text-xl font-display font-medium mb-6 flex justify-between">
-                            Comentarios <span className="text-zinc-600 text-sm">0 comentarios</span>
-                        </h3>
-                        <div className="relative">
-                            <input 
-                                type="text" 
-                                placeholder="Añade un análisis o comentario técnico..." 
-                                className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl py-4 pl-4 pr-24 focus:outline-none focus:border-zinc-600 transition-colors placeholder-zinc-600"
-                            />
-                            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition-colors">
-                                Enviar
-                            </button>
-                        </div>
-                    </div>
-
                 </div>
             </div>
+
+            {/* =========================================
+                COLUMNA DERECHA: MASONRY EXPLORER
+               ========================================= */}
+            <div className="w-full lg:w-[55%] xl:w-[60%] h-auto lg:h-screen lg:overflow-y-auto p-4 md:p-6 bg-[#090B0E]">
+                
+                {/* Título de la sección de descubrimiento */}
+                <h2 className="text-lg font-display font-bold tracking-wider mb-6 text-zinc-300">
+                    Más referencias similares
+                </h2>
+
+                {/* Grid con columnas fluidas (CSS Columns) para un Masonry perfecto */}
+                <div className="columns-2 sm:columns-3 xl:columns-4 gap-4 space-y-4">
+                    {relatedPins.map((relatedPin) => (
+                        <div 
+                            key={relatedPin.id} 
+                            onClick={() => navigate(`/pin/${relatedPin.id}`)}
+                            className="break-inside-avoid relative rounded-xl overflow-hidden cursor-pointer group shadow-lg bg-zinc-900"
+                        >
+                            <img 
+                                src={relatedPin.image_url} 
+                                alt={relatedPin.title} 
+                                className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                            />
+                            
+                            {/* Hover Overlay en tarjetas del grid derecho */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3 pointer-events-none">
+                                <div className="flex justify-end">
+                                    <button className="bg-[#E60023] text-white font-bold text-xs px-3 py-1.5 rounded-full pointer-events-auto">
+                                        Guardar
+                                    </button>
+                                </div>
+                                <div className="w-full">
+                                    <h3 className="text-white font-bold text-sm truncate drop-shadow-md">
+                                        {relatedPin.title}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            
+            {/* ESTILO GLOBAL PARA OCULTAR BARRAS DE SCROLL EN LA IZQUIERDA PERO PERMITIR SCROLL */}
+            <style dangerouslySetInnerHTML={{__html: `
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            `}} />
         </div>
     );
 };
