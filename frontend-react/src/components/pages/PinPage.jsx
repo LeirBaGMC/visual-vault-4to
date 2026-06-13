@@ -1,117 +1,126 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Spinner } from "@heroui/react";
-import { Home, Compass, Plus, Bell, MessageCircle, Search, ChevronDown, ArrowLeft } from 'lucide-react';
-import PinDetailPanel from '../organism/PinDetailPanel.jsx'; 
-import Feed from '../organism/Feed.jsx'; 
+import { useParams, useNavigate } from 'react-router-dom';
 
 const PinPage = () => {
-    const { id } = useParams(); 
+    const { id } = useParams();
     const navigate = useNavigate();
-    
-    const [pinData, setPinData] = useState(null);
+    const [pin, setPin] = useState(null);
     const [loading, setLoading] = useState(true);
-    
-    // Inicialización perezosa (Lazy initialization) correcta
-    const [username] = useState(() => localStorage.getItem('username') || 'V');
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
     useEffect(() => {
         const fetchPinDetail = async () => {
-            setLoading(true); 
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/pins/${id}`);
-                if (!response.ok) {
-                    if (response.status === 404) throw new Error("La imagen no fue encontrada.");
-                    throw new Error(`Error del servidor: ${response.status}`);
+                const response = await fetch(`${apiUrl}/pins/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setPin(data);
                 }
-                const data = await response.json();
-                setPinData(data);
-            } catch (err) {
-                // Solo lo imprimimos en consola, ya no usamos setError
-                console.error("Fallo al cargar el pin:", err);
+            } catch (error) {
+                console.error("Error al cargar el detalle del pin:", error);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchPinDetail();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [id]);
+    }, [id, apiUrl]);
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white flex justify-center items-center">
-                <Spinner color="danger" size="lg" label="Cargando panel..." />
+            <div className="min-h-screen bg-[#090B0E] flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-zinc-800 border-t-zinc-400 rounded-full animate-spin"></div>
             </div>
         );
     }
 
+    if (!pin) return <div className="min-h-screen bg-[#090B0E] text-white p-8">Pin no encontrado.</div>;
+
     return (
-        <div className="min-h-screen w-full bg-white font-sans text-[#111111] flex">
-            {/* BARRA LATERAL ESTÁTICA ESTILO PINTEREST */}
-            <aside className="fixed left-0 top-0 h-screen w-[60px] bg-white flex flex-col items-center py-4 z-50 border-r border-gray-100">
-                <Link to="/perfil" className="mb-6 p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <div className="w-6 h-6 bg-[#e60023] rounded-full flex items-center justify-center text-white font-bold text-xs">V</div>
-                </Link>
-                <nav className="flex flex-col gap-2 w-full items-center">
-                    <button onClick={() => navigate('/perfil')} className="w-12 h-12 rounded-full flex items-center justify-center bg-transparent text-[#767676] hover:bg-[#e9e9e9] transition-colors">
-                        <Home className="w-6 h-6" />
-                    </button>
-                    <button className="w-12 h-12 rounded-full flex items-center justify-center bg-transparent text-[#767676] hover:bg-[#e9e9e9] transition-colors">
-                        <Compass className="w-6 h-6" />
-                    </button>
-                    <button className="w-12 h-12 rounded-full flex items-center justify-center bg-transparent text-[#767676] hover:bg-[#e9e9e9] transition-colors">
-                        <Plus className="w-6 h-6" />
-                    </button>
-                </nav>
-                <div className="mt-auto flex flex-col gap-2 w-full items-center pb-4">
-                    <button className="w-12 h-12 rounded-full flex items-center justify-center text-[#767676] hover:bg-gray-100"><Bell className="w-6 h-6" /></button>
-                    <button className="w-12 h-12 rounded-full flex items-center justify-center text-[#767676] hover:bg-gray-100"><MessageCircle className="w-6 h-6" /></button>
+        <div className="min-h-screen bg-[#090B0E] pt-24 pb-12 px-4 md:px-8">
+            
+            {/* Botón Volver */}
+            <button 
+                onClick={() => navigate(-1)}
+                className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group w-fit"
+            >
+                <svg className="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="font-sans font-medium uppercase tracking-widest text-sm">Volver a la Bóveda</span>
+            </button>
+
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                
+                {/* Lado Izquierdo: Imagen Principal */}
+                <div className="relative group rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-zinc-800/50 bg-zinc-900">
+                    <img 
+                        src={pin.image_url} 
+                        alt={pin.title} 
+                        className="w-full h-auto object-cover max-h-[85vh]"
+                    />
                 </div>
-            </aside>
 
-            {/* CONTENEDOR DERECHO DE CONTENIDO */}
-            <div className="flex-1 ml-[60px] flex flex-col min-w-0">
-                {/* CABECERA SUPERIOR CON BUSCADOR */}
-                <header className="fixed top-0 right-0 left-[60px] h-[72px] bg-white z-40 flex items-center justify-between px-6 border-b border-gray-50">
-                    <div className="flex-1 max-w-[95%] pr-4">
-                        <div className="w-full bg-[#e9e9e9] hover:bg-[#e1e1e1] transition-colors rounded-full h-12 flex items-center px-4 gap-3 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#76cbff]/30">
-                            <Search className="w-[20px] h-[20px] text-[#767676]" strokeWidth={2.5} />
-                            <input type="text" placeholder="Buscar" className="bg-transparent outline-none w-full text-[#111111] font-normal placeholder:text-[#767676] text-[16px]" />
+                {/* Lado Derecho: Metadatos e Interacción */}
+                <div className="flex flex-col text-white py-4">
+                    
+                    {/* Top Bar: Iconos de Acción */}
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex gap-4">
+                            <button className="text-zinc-400 hover:text-red-500 transition-colors">
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                            </button>
+                            <button className="text-zinc-400 hover:text-blue-400 transition-colors">
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                            </button>
+                        </div>
+                        <button className="bg-white text-black font-bold uppercase tracking-widest text-sm px-6 py-3 rounded-full hover:bg-gray-200 transition-colors">
+                            Guardar
+                        </button>
+                    </div>
+
+                    {/* Información Central */}
+                    <div className="mb-10">
+                        <span className="text-blue-500 text-xs font-bold tracking-widest uppercase mb-3 block">
+                            {pin.category}
+                        </span>
+                        <h1 className="text-4xl md:text-5xl font-display font-medium tracking-tight mb-6">
+                            {pin.title}
+                        </h1>
+                        <p className="text-zinc-400 font-sans text-lg leading-relaxed">
+                            {pin.description || `Referencia visual de alta resolución extraída para la sección de ${pin.category}. Visual Vault analiza y protege los metadatos de esta imagen.`}
+                        </p>
+                    </div>
+
+                    {/* Creador (Mockup visual) */}
+                    <div className="flex items-center gap-4 mb-10 pb-10 border-b border-zinc-800">
+                        <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center font-bold text-lg">
+                            MC
+                        </div>
+                        <div>
+                            <p className="font-bold text-gray-200">Gabriel Minda Carrión</p>
+                            <p className="text-sm text-zinc-500">CTO & Curador</p>
                         </div>
                     </div>
-                    <div onClick={() => navigate('/perfil')} className="flex items-center gap-1 cursor-pointer hover:bg-slate-100 p-1.5 rounded-full transition-colors">
-                        <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold">
-                            {username.charAt(0).toUpperCase()}
-                        </div>
-                        <ChevronDown className="w-4 h-4 text-[#111111]" strokeWidth={2.5} />
-                    </div>
-                </header>
 
-                {/* AREA DE TRABAJO PRINCIPAL */}
-                <main className="pt-[90px] px-6 pb-8 w-full flex flex-col items-start">
-                    <button 
-                        onClick={() => navigate(-1)}
-                        className="mb-4 p-2 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center mt-2"
-                    >
-                        <ArrowLeft className="w-6 h-6 text-gray-800" strokeWidth={2.5} />
-                    </button>
-
-                    <div className="w-full flex flex-col lg:flex-row gap-8 items-start justify-between">
-                        <div className="w-full lg:w-[55%] xl:w-[50%] shrink-0">
-                            <PinDetailPanel pin={pinData} />
-                        </div>
-
-                        <div className="flex-1 min-w-0 flex flex-col">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4 pl-1">
-                                Más para explorar
-                            </h2>
-                            <div className="w-full">
-                                <Feed excludeId={id} />
-                            </div>
+                    {/* Comentarios Oscuros */}
+                    <div>
+                        <h3 className="text-xl font-display font-medium mb-6 flex justify-between">
+                            Comentarios <span className="text-zinc-600 text-sm">0 comentarios</span>
+                        </h3>
+                        <div className="relative">
+                            <input 
+                                type="text" 
+                                placeholder="Añade un análisis o comentario técnico..." 
+                                className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl py-4 pl-4 pr-24 focus:outline-none focus:border-zinc-600 transition-colors placeholder-zinc-600"
+                            />
+                            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg transition-colors">
+                                Enviar
+                            </button>
                         </div>
                     </div>
-                </main>
+
+                </div>
             </div>
         </div>
     );

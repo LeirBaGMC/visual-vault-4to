@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; // <-- 1. IMPORTAMOS NAVEGACIÓN
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -21,13 +22,14 @@ const CONSTELLATION_POSITIONS = [
 ];
 
 const Hero = () => {
+    const navigate = useNavigate(); // <-- 2. INICIALIZAMOS NAVEGACIÓN
     const [heroData, setHeroData] = useState({ centerPin: null, scatteredPins: [] });
     const heroRef = useRef(null);
     const pinsRef = useRef([]);
     const textRef = useRef(null);      
     const mainImgRef = useRef(null);   
 
-   useEffect(() => {
+    useEffect(() => {
         const fetchPins = async () => {
             try {
                 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -36,23 +38,17 @@ const Hero = () => {
                 const data = await response.json();
                 
                 if (data.length > 0) {
-                    // 1. Filtro estricto: Solo acepta categoría que sea exactamente "Wallpapers"
                     const hdWallpapers = data.filter(pin => 
                         pin.category && pin.category.trim().toLowerCase() === 'wallpapers'
                     );
                     
-                    console.log("DEBUG - Wallpapers encontrados:", hdWallpapers.length);
-
-                    // 2. Si no hay wallpapers, no usamos 'data' como respaldo
-                    // Esto evita que salgan gatos o código en el Hero
                     if (hdWallpapers.length === 0) {
                         console.warn("¡No se encontraron imágenes en la categoría 'Wallpapers'! Sube archivos a esa carpeta.");
-                        return; // Salimos para no romper el diseño
+                        return; 
                     }
                     
                     const selectedCenter = hdWallpapers[Math.floor(Math.random() * hdWallpapers.length)]; 
                     
-                    // 3. Las flotantes pueden ser de toda la data
                     const others = data.filter(pin => pin.id !== selectedCenter.id);
                     const shuffledOthers = others.sort(() => 0.5 - Math.random()).slice(0, 12);
                     
@@ -127,7 +123,6 @@ const Hero = () => {
                             style={{ top: pos.top, left: pos.left, right: pos.right, width: pos.width, height: pos.height }} 
                             className="absolute rounded-[20px] overflow-hidden shadow-lg z-10 will-change-transform bg-slate-200"
                         >
-                            {/* Al usar object-cover con wallpapers horizontales, se adaptarán perfecto a estos cuadros */}
                             <img 
                                 src={pin.image_url} 
                                 alt={pin.title} 
@@ -142,9 +137,26 @@ const Hero = () => {
                     <h1 className="font-display text-5xl md:text-7xl lg:text-[92px] font-medium tracking-tight leading-[1] mb-6 drop-shadow-lg">
                         Descubre. Guarda.<br /> Construye.
                     </h1>
-                    <p className="font-sans text-lg md:text-2xl text-white/90 font-normal max-w-2xl drop-shadow-md">
+                    <p className="font-sans text-lg md:text-2xl text-white/90 font-normal max-w-2xl drop-shadow-md mb-8">
                         La bóveda definitiva para referencias visuales, arquitectura de software y diseño de interfaces. IA que clasifica todo por ti.
                     </p>
+                    
+                    {/* 3. EL BOTÓN (Con pointer-events-auto para que funcione dentro del div bloqueado) */}
+                    <button 
+                        onClick={() => navigate('/perfil')}
+                        className="pointer-events-auto group relative inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-sm rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+                    >
+                        <span>Entrar al Vault</span>
+                        <svg 
+                            className="w-5 h-5 transform transition-transform group-hover:translate-x-2" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+
                 </div>
             </div>
         </section>
