@@ -246,6 +246,17 @@ const PinPage = () => {
               </p>
             )}
 
+            {pin.link && (
+              <a
+                href={pin.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-blue-400 hover:text-blue-300 mb-8 transition-colors"
+              >
+                Visitar sitio asociado ↗
+              </a>
+            )}
+
             {/* Autor real: quién lo subió y cuándo */}
             <div className="flex items-center gap-4 mb-10 pb-8 border-b border-zinc-800">
               <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center font-bold text-lg uppercase">

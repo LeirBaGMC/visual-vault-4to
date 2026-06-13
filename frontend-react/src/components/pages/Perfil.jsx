@@ -389,6 +389,20 @@ const Perfil = () => {
                       />
                     </svg>
                   </button>
+                  <button
+                    onClick={() => navigate("/visualizar")}
+                    className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 rounded-lg font-medium transition-colors flex items-center justify-between group"
+                  >
+                    <span>Visualizar pines</span>
+                    <svg
+                      className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                   <button className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 rounded-lg transition-colors">
                     Añadir cuenta
                   </button>

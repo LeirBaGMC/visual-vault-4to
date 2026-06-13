@@ -10,6 +10,7 @@ import Register from "./components/pages/Register";
 import Perfil from "./components/pages/Perfil";
 import PinPage from "./components/pages/PinPage"; // Nombre corregido
 import Tableros from "./components/pages/Tableros";
+import Visualizador from "./components/pages/Visualizador";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route element={<PrivateRoute />}>
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/tableros" element={<Tableros />} />
+        <Route path="/visualizar" element={<Visualizador />} />
       </Route>
 
       {/* 2. RUTAS CON PLANTILLA (Automáticamente envueltas con el Header) */}

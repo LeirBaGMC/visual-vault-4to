@@ -42,6 +42,7 @@ class Pin(SQLModel, table=True):
     image_url: str
     category: str = Field(default="General", index=True)
     is_sensitive: bool = Field(default=False)
+    link: Optional[str] = Field(default=None)  # enlace externo asociado (opcional)
     created_at: Optional[datetime] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )

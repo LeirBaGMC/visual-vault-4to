@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, UploadCloud, ImagePlus } from "lucide-react";
 
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
@@ -9,10 +9,25 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [link, setLink] = useState("");
   const [category, setCategory] = useState("");
+  const [boardId, setBoardId] = useState(""); // tablero destino (opcional)
+  const [boards, setBoards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
+
+  // Cargar los tableros del usuario al abrir (para el selector "Tablero").
+  useEffect(() => {
+    if (!isOpen) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch(`${apiUrl}/boards/`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => setBoards(Array.isArray(d) ? d : []))
+      .catch(() => setBoards([]));
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -31,7 +46,10 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
     setFile(null);
     setPreview(null);
     setTitle("");
+    setDescription("");
+    setLink("");
     setCategory("");
+    setBoardId("");
     setError("");
     onClose();
   };
@@ -48,11 +66,13 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
       fd.append("file", file);
       fd.append("title", title.trim());
       fd.append("category", category.trim() || "General");
-      fd.append("description", "");
+      fd.append("description", description.trim());
+      fd.append("link", link.trim());
 
+      const token = localStorage.getItem("token");
       const r = await fetch(`${apiUrl}/pins/upload/`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
       const data = await r.json();
@@ -60,6 +80,15 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
         throw new Error("Inicia sesión para subir imágenes.");
       }
       if (!r.ok) throw new Error(data.detail || "No se pudo subir la imagen.");
+
+      // Si se eligió un tablero, guardamos el pin recién creado en él.
+      if (boardId && data.pin?.id) {
+        await fetch(`${apiUrl}/boards/${boardId}/pins`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ pin_id: data.pin.id }),
+        }).catch(() => {});
+      }
 
       onUploaded?.(data.pin);
       cerrar();
@@ -138,6 +167,52 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
               placeholder="Si lo dejas vacío, será “Sin título”"
               className="w-full bg-zinc-950 border border-zinc-700 text-white text-sm px-4 py-2.5 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors placeholder:text-zinc-600"
             />
+          </div>
+
+          {/* Descripción (opcional) */}
+          <div>
+            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+              Descripción <span className="text-zinc-600 normal-case">(opcional)</span>
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Describe tu Pin"
+              className="w-full bg-zinc-950 border border-zinc-700 text-white text-sm px-4 py-2.5 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors placeholder:text-zinc-600 resize-none"
+            />
+          </div>
+
+          {/* Enlace (opcional) */}
+          <div>
+            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+              Enlace <span className="text-zinc-600 normal-case">(opcional)</span>
+            </label>
+            <input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="https://…"
+              className="w-full bg-zinc-950 border border-zinc-700 text-white text-sm px-4 py-2.5 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors placeholder:text-zinc-600"
+            />
+          </div>
+
+          {/* Tablero destino (opcional) */}
+          <div>
+            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+              Tablero
+            </label>
+            <select
+              value={boardId}
+              onChange={(e) => setBoardId(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-700 text-white text-sm px-4 py-2.5 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors appearance-none"
+            >
+              <option value="">Sin tablero</option>
+              {boards.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Categoría */}

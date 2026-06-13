@@ -112,6 +112,7 @@ def subir_nuevo_pin(
     title: str = Form(""),
     description: str = Form(""),
     category: str = Form("General"),
+    link: str = Form(""),
     file: UploadFile = File(...),
     current_user: User = Depends(obtener_usuario_actual),
     db: Session = Depends(get_session)
@@ -137,14 +138,15 @@ def subir_nuevo_pin(
     nuevo_pin = Pin(
         title=title,
         description=description,
-        category=category,
+        category=category or "General",
         image_url=url_publica_aws,
+        link=link or None,
         creator_id=current_user.id,
-        is_sensitive=False 
+        is_sensitive=False
     )
 
     db.add(nuevo_pin)
     db.commit()
     db.refresh(nuevo_pin)
-    
+
     return {"mensaje": "¡Pin validado por IA y subido con éxito!", "pin": nuevo_pin}
