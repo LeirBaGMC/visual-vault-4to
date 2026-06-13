@@ -146,22 +146,35 @@ const SpiralGallery = ({ items, onSelect }) => {
   const dragging = useRef(false);
   const lastY = useRef(0);
   const movedRef = useRef(0);
+  // Dimensiones de la hélice, recalculadas según el ancho de pantalla (responsive).
+  const dimsRef = useRef({ R: 230, H: 760 });
 
   const N = items.length;
+
+  useEffect(() => {
+    const calcDims = () => {
+      const w = window.innerWidth;
+      // En móvil el radio y el alto se achican para que el "churro" no se salga.
+      dimsRef.current = {
+        R: Math.max(95, Math.min(230, w * 0.3)),
+        H: Math.max(380, Math.min(760, w * 1.05)),
+      };
+    };
+    calcDims();
+    window.addEventListener("resize", calcDims);
+    return () => window.removeEventListener("resize", calcDims);
+  }, []);
 
   useEffect(() => {
     if (N === 0) return;
     let raf;
 
-    // Geometría de la hélice ASCENDENTE
-    const RADIUS = 230; // radio horizontal del enroscado
-    const HEIGHT = 760; // recorrido vertical (de abajo a arriba)
     const TURNS = 2; // vueltas que da mientras sube de abajo a arriba
-
     const frac = (n) => n - Math.floor(n); // parte fraccionaria (envuelve en [0,1))
 
     const layout = () => {
       const progress = progressRef.current;
+      const { R: RADIUS, H: HEIGHT } = dimsRef.current;
       for (let i = 0; i < N; i++) {
         const el = cardRefs.current[i];
         if (!el) continue;
@@ -254,7 +267,7 @@ const SpiralGallery = ({ items, onSelect }) => {
             onClick={() => {
               if (movedRef.current < 6) onSelect(p);
             }}
-            className="absolute w-44 h-56 will-change-transform"
+            className="absolute w-28 h-36 sm:w-44 sm:h-56 will-change-transform"
             style={{ left: 0, top: 0 }}
           >
             <div className="group w-full h-full rounded-2xl overflow-hidden ring-1 ring-white/15 bg-zinc-900 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.95)]">
