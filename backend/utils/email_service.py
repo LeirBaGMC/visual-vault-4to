@@ -27,6 +27,45 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True
 )
 
+async def enviar_codigo_verificacion(email_destino: str, codigo: str, proposito: str = "register"):
+    """Envía un código de 6 dígitos para verificar el correo (registro) o el login (2FA)."""
+    es_login = proposito == "login"
+    titulo = "Tu código de acceso" if es_login else "Confirma tu correo"
+    intro = (
+        "Usa este código para completar tu inicio de sesión:"
+        if es_login
+        else "Usa este código para verificar tu correo y activar tu cuenta:"
+    )
+
+    html_content = f"""
+    <div style="font-family: 'Segoe UI', sans-serif; padding: 30px; background-color: #FAF7F4; border-radius: 12px; max-width: 600px; margin: auto; border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="background-color: #0f172a; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">V</div>
+            <h2 style="color: #0f172a; margin-top: 10px;">Visual Vault</h2>
+        </div>
+        <h2 style="color: #0f172a;">{titulo}</h2>
+        <p style="color: #334155; font-size: 16px;">{intro}</p>
+        <div style="text-align: center; margin: 24px 0;">
+            <span style="display:inline-block; font-size: 34px; letter-spacing: 10px; font-weight: bold; color: #0f172a; background:#f1f5f9; padding: 14px 24px; border-radius: 12px; border:1px solid #e2e8f0;">{codigo}</span>
+        </div>
+        <p style="color: #64748b; font-size: 14px;">Este código caduca en 10 minutos. Si no fuiste tú, ignora este mensaje.</p>
+    </div>
+    """
+
+    message = MessageSchema(
+        subject=f"{titulo}: {codigo}",
+        recipients=[email_destino],
+        body=html_content,
+        subtype=MessageType.html,
+    )
+
+    fm = FastMail(conf)
+    try:
+        await fm.send_message(message)
+    except Exception as e:
+        print(f"❌ Error al enviar código de verificación: {e}")
+
+
 async def enviar_correo_bienvenida(email_destino: str, username: str):
     """
     Envía un correo de bienvenida cuando el usuario se registra exitosamente.

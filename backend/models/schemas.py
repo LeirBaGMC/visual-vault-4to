@@ -128,3 +128,27 @@ class BoardRead(SQLModel):
     name: str
     pin_count: int
     covers: List[str] = []
+
+
+# ==========================================
+# VERIFICACIÓN POR CÓDIGO (registro + 2FA login)
+# ==========================================
+
+class VerificationCode(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(index=True)
+    code: str
+    purpose: str = Field(index=True)  # "register" | "login"
+    expires_at: datetime
+    used: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class VerifyRequest(SQLModel):
+    email: str
+    code: str
+
+
+class ResendRequest(SQLModel):
+    email: str
+    purpose: str  # "register" | "login"

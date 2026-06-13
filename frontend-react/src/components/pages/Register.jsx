@@ -4,6 +4,7 @@ import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../authConfig";
 import { Button, Input } from "@heroui/react";
 import { Eye, EyeOff } from "lucide-react";
+import CodeVerification from "../molecules/CodeVerification";
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -14,9 +15,22 @@ const Register = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [bgImage, setBgImage] = useState(null);
+
+    // Tras enviar el registro, se pide un código de verificación de correo.
+    const [paso, setPaso] = useState("form"); // "form" | "codigo"
+
     const navigate = useNavigate();
     const { instance } = useMsal();
-    const procesandoAuth = useRef(false); 
+    const procesandoAuth = useRef(false);
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+    // Tras verificar el código, queda logueado y entra al perfil.
+    const finalizarSesion = (data) => {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('username', data.username);
+        navigate('/perfil');
+    };
 
     // 1. Expulsor de Sesión Activa (Totalmente independiente)
     useEffect(() => {
@@ -97,7 +111,7 @@ const Register = () => {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:8000/api/v1/users', {
+            const response = await fetch(`${apiUrl}/users/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password, birthdate })
@@ -106,7 +120,8 @@ const Register = () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail || "Error al crear la cuenta");
 
-            navigate('/login'); 
+            // La cuenta se creó inactiva: pasamos al paso de verificación por código.
+            setPaso("codigo");
         } catch (err) {
             console.error("Error en registro manual:", err);
             setError(err.message);
@@ -149,6 +164,15 @@ const Register = () => {
                 </Link>
 
                 <div className="max-w-md w-full mx-auto">
+                  {paso === "codigo" ? (
+                    <CodeVerification
+                      email={email}
+                      purpose="register"
+                      onVerified={finalizarSesion}
+                      onBack={() => setPaso("form")}
+                    />
+                  ) : (
+                   <>
                     <h2 className="text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight mb-2">Comienza tu bóveda</h2>
                     <p className="text-slate-500 mb-8">Únete gratis y centraliza tus recursos hoy mismo.</p>
 
@@ -232,6 +256,8 @@ const Register = () => {
                     <p className="text-center text-slate-500 mt-8 text-sm">
                         ¿Ya tienes una cuenta? <Link to="/login" className="font-bold text-slate-900 hover:underline">Inicia sesión</Link>
                     </p>
+                   </>
+                  )}
                 </div>
             </div>
         </div>

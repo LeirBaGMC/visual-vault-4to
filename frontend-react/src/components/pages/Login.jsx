@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "../../authConfig"; 
+import { loginRequest } from "../../authConfig";
 import { Button, Input } from "@heroui/react";
 import { Eye, EyeOff } from "lucide-react";
+import CodeVerification from "../molecules/CodeVerification";
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -12,10 +13,22 @@ const Login = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [bgImage, setBgImage] = useState(null);
-    
+
+    // Flujo en 2 pasos: tras la contraseña se pide un código (2FA) o verificación de correo.
+    const [paso, setPaso] = useState("credenciales"); // "credenciales" | "codigo"
+    const [codeEmail, setCodeEmail] = useState("");
+    const [codePurpose, setCodePurpose] = useState("login"); // "login" | "register"
+
     const navigate = useNavigate();
     const { instance } = useMsal();
     const procesandoAuth = useRef(false); // Evita ejecuciones concurrentes de la promesa
+
+    // Guarda la sesión tras verificar el código y entra al perfil.
+    const finalizarSesion = (data) => {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('username', data.username);
+        navigate('/perfil');
+    };
 
     // 1. Manejo del Login de Microsoft Corregido
     useEffect(() => {
@@ -93,10 +106,11 @@ const Login = () => {
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail || "Credenciales incorrectas");
-            
-            localStorage.setItem('token', data.access_token);
-            localStorage.setItem('username', data.username); 
-            navigate('/perfil'); 
+
+            // El backend no devuelve token aún: pide un código (2FA o verificación de correo).
+            setCodeEmail(data.email || email);
+            setCodePurpose(data.requires_verification ? "register" : "login");
+            setPaso("codigo");
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -114,6 +128,15 @@ const Login = () => {
                 </Link>
 
                 <div className="max-w-md w-full mx-auto mt-16">
+                  {paso === "codigo" ? (
+                    <CodeVerification
+                      email={codeEmail}
+                      purpose={codePurpose}
+                      onVerified={finalizarSesion}
+                      onBack={() => setPaso("credenciales")}
+                    />
+                  ) : (
+                   <>
                     <h2 className="text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight mb-2">Bienvenido de vuelta</h2>
                     <p className="text-slate-500 mb-8">Ingresa a tu bóveda y continúa construyendo.</p>
 
@@ -182,6 +205,8 @@ const Login = () => {
                     <p className="text-center text-slate-500 mt-8 text-sm">
                         ¿No tienes una cuenta? <Link to="/register" className="font-bold text-slate-900 hover:underline">Regístrate gratis</Link>
                     </p>
+                   </>
+                  )}
                 </div>
             </div>
 
