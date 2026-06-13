@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import SaveToBoardButton from "../molecules/SaveToBoardButton";
+import UploadModal from "../molecules/UploadModal";
 
 const GRID_PATTERNS = [
   "md:col-span-2 md:row-span-2",
@@ -18,6 +19,7 @@ const Perfil = () => {
   const [filteredPins, setFilteredPins] = useState([]);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [esAdmin, setEsAdmin] = useState(false); // ¿el usuario logueado es admin real?
+  const [uploadOpen, setUploadOpen] = useState(false); // modal de subir imagen
   const [editingPinId, setEditingPinId] = useState(null);
   const [newTitle, setNewTitle] = useState("");
 
@@ -235,6 +237,13 @@ const Perfil = () => {
 
   return (
     <div className="min-h-screen bg-[#090B0E] p-4 md:p-8 text-white relative">
+      <UploadModal
+        isOpen={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUploaded={() => cargarPines()}
+        categorias={categoriasUnicas.filter((c) => c !== "Todas" && c !== "Para Ti")}
+      />
+
       {toastMsg && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-zinc-800 text-white px-6 py-3 rounded-full shadow-2xl border border-zinc-700 animate-fade-in-up flex items-center gap-2">
           <svg
@@ -291,7 +300,7 @@ const Perfil = () => {
             />
           </div>
           <button
-            onClick={() => alert("Módulo de Ingesta S3")}
+            onClick={() => setUploadOpen(true)}
             className="bg-white hover:bg-gray-200 text-black px-5 py-3 rounded-full shadow-lg flex items-center justify-center flex-shrink-0 font-bold text-sm tracking-wider uppercase transition-colors"
           >
             <svg
@@ -429,7 +438,7 @@ const Perfil = () => {
           </svg>
         </button>
         <button
-          onClick={() => alert("Módulo de Ingesta S3")}
+          onClick={() => setUploadOpen(true)}
           className="bg-zinc-800 hover:bg-zinc-700 text-white p-2.5 rounded-full transition-colors"
         >
           <svg

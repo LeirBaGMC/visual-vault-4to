@@ -238,21 +238,32 @@ const PinPage = () => {
               {pin.category}
             </span>
             <h1 className="text-3xl md:text-4xl font-display font-medium tracking-tight mb-4">
-              {pin.title}
+              {pin.title?.trim() || "Sin título"}
             </h1>
-            <p className="text-zinc-400 font-sans text-base leading-relaxed mb-8">
-              {pin.description ||
-                "Referencia visual de alta resolución extraída del ecosistema."}
-            </p>
+            {pin.description && (
+              <p className="text-zinc-400 font-sans text-base leading-relaxed mb-8">
+                {pin.description}
+              </p>
+            )}
 
-            {/* Creador */}
+            {/* Autor real: quién lo subió y cuándo */}
             <div className="flex items-center gap-4 mb-10 pb-8 border-b border-zinc-800">
-              <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center font-bold text-lg">
-                MC
+              <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center font-bold text-lg uppercase">
+                {(pin.creator_username || "VV").slice(0, 2)}
               </div>
               <div>
-                <p className="font-bold text-gray-200">Gabriel Minda Carrión</p>
-                <p className="text-sm text-zinc-500">CTO & Curador</p>
+                <p className="font-bold text-gray-200">
+                  {pin.creator_username || "Anónimo"}
+                </p>
+                <p className="text-sm text-zinc-500">
+                  {pin.created_at
+                    ? `Subido el ${new Date(pin.created_at).toLocaleDateString("es-ES", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}`
+                    : "Referencia del ecosistema"}
+                </p>
               </div>
             </div>
 
