@@ -1,15 +1,6 @@
-import { Button } from "@heroui/react";
+import SaveToBoardButton from "./SaveToBoardButton";
 
-const PinCard = ({ pin, isViewed, onClick, onSave, onLike }) => {
-    
-    const handleSaveClick = (e) => {
-        e.stopPropagation(); // Evita que se abra el detalle del pin al hacer click aquí
-        if (onSave) {
-            onSave(pin);
-        } else {
-            console.log("Guardar pin para la IA:", pin.title);
-        }
-    };
+const PinCard = ({ pin, isViewed, onClick, onLike }) => {
 
     const handleLikeClick = (e) => {
         e.stopPropagation(); // Evita que se dispare el onClick de la tarjeta completa
@@ -51,17 +42,9 @@ const PinCard = ({ pin, isViewed, onClick, onSave, onLike }) => {
             {/* Se añade un gradiente oscuro sutil (from-black/60) abajo para que el texto blanco nunca se pierda en fotos claras */}
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4 z-30 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none">
                 
-                {/* FILA SUPERIOR: Botón Guardar Principal */}
+                {/* FILA SUPERIOR: Desplegable Guardar en tablero */}
                 <div className="flex justify-end pointer-events-auto">
-                    <Button 
-                        color="danger" 
-                        radius="full" 
-                        size="sm" 
-                        className="font-bold text-white shadow-md bg-[#e60023] hover:bg-[#b6001a] active:scale-95 transition-all"
-                        onClick={handleSaveClick}
-                    >
-                        Guardar
-                    </Button>
+                    <SaveToBoardButton pin={pin} size="sm" />
                 </div>
 
                 {/* FILA INFERIOR: Título del pin y Botón de Reacción Rápida */}

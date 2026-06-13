@@ -1,6 +1,6 @@
 // src/components/templates/MainLayout.jsx
 import { Outlet } from 'react-router-dom';
-import Header from '../organism/Header'; // Asegúrate de ajustar la ruta si es necesario
+import Header from '../organisms/Header'; // Asegúrate de ajustar la ruta si es necesario
 
 const MainLayout = () => {
     return (

@@ -1,6 +1,6 @@
-import Hero from '../organism/Hero';
-import FeatureShowcase from '../organism/FeatureShowcase';
-import Footer from '../organism/Footer';
+import Hero from '../organisms/Hero';
+import FeatureShowcase from '../organisms/FeatureShowcase';
+import Footer from '../organisms/Footer';
 
 const HomePage = () => {
     return (

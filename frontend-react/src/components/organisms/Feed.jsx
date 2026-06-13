@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Spinner } from "@heroui/react";
-import PinCard from '../molecules/Pincard'; 
+import PinCard from '../molecules/PinCard';
 
 const Feed = () => {
     const [pins, setPins] = useState([]);
@@ -50,6 +50,16 @@ const Feed = () => {
         navigate(`/pin/${pin.id}`);
     };
 
+    // Like rápido desde el hover.
+    // TODO (fase Likes): persistir en backend /pins/{id}/like y leer el contador real.
+    const handleLikePin = (pin) => {
+        const liked = JSON.parse(localStorage.getItem('likedPins') || '[]');
+        const next = liked.includes(pin.id)
+            ? liked.filter((id) => id !== pin.id)
+            : [...liked, pin.id];
+        localStorage.setItem('likedPins', JSON.stringify(next));
+    };
+
     if (loading) {
         return (
             <div className="w-full flex justify-center items-center h-64">
@@ -73,11 +83,12 @@ const Feed = () => {
         <div className="w-full mt-4">
             <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
                 {pins.map((pin) => (
-                    <PinCard 
-                        key={pin.id} 
-                        pin={pin} 
-                        isViewed={viewedPins.includes(pin.id)} 
-                        onClick={handlePinClick} 
+                    <PinCard
+                        key={pin.id}
+                        pin={pin}
+                        isViewed={viewedPins.includes(pin.id)}
+                        onClick={handlePinClick}
+                        onLike={handleLikePin}
                     />
                 ))}
             </div>

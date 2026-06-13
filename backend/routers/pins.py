@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlmodel import Session, select
 from bdd import get_session
-from models.schemas import Pin, PinCreate, User
+from models.schemas import Pin, PinCreate, PinUpdate, User
 from utils.aws_client import subir_imagen_s3, analizar_imagen_nsfw, eliminar_imagen_s3_por_url
-from core.security import obtener_usuario_actual
+from core.security import obtener_usuario_actual, obtener_admin_actual
 
 router = APIRouter(
     prefix="/api/v1/pins",
@@ -38,8 +38,34 @@ def get_pin_by_id(pin_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="La imagen no fue encontrada.")
     return pin
 
+@router.put("/{pin_id}")
+def editar_pin(
+    pin_id: int,
+    cambios: PinUpdate,
+    db: Session = Depends(get_session),
+    admin: User = Depends(obtener_admin_actual),
+):
+    pin = db.get(Pin, pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin no encontrado")
+
+    datos = cambios.model_dump(exclude_unset=True)
+    for campo, valor in datos.items():
+        if valor is not None:
+            setattr(pin, campo, valor)
+
+    db.add(pin)
+    db.commit()
+    db.refresh(pin)
+    return {"mensaje": "Pin actualizado", "pin": pin}
+
+
 @router.delete("/{pin_id}")
-def eliminar_pin(pin_id: int, db: Session = Depends(get_session)):
+def eliminar_pin(
+    pin_id: int,
+    db: Session = Depends(get_session),
+    admin: User = Depends(obtener_admin_actual),
+):
     pin_a_eliminar = db.get(Pin, pin_id)
     if not pin_a_eliminar:
         raise HTTPException(status_code=404, detail="Pin no encontrado")
@@ -52,7 +78,11 @@ def eliminar_pin(pin_id: int, db: Session = Depends(get_session)):
     return {"mensaje": f"Pin {pin_id} eliminado exitosamente de la bóveda y de S3."}
 
 @router.delete("/categoria/{nombre_categoria}")
-def eliminar_pines_por_categoria(nombre_categoria: str, db: Session = Depends(get_session)):
+def eliminar_pines_por_categoria(
+    nombre_categoria: str,
+    db: Session = Depends(get_session),
+    admin: User = Depends(obtener_admin_actual),
+):
     consulta = select(Pin).where(Pin.category == nombre_categoria)
     pines_a_eliminar = db.exec(consulta).all()
     

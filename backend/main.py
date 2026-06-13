@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from sqlmodel import Session
 from bdd import init_db, get_session
 from models.schemas import Pin, PinCreate
-from routers import pins, users, auth
+from routers import pins, users, auth, social, boards
 
 
 @asynccontextmanager
@@ -40,6 +40,8 @@ app.add_middleware(
 app.include_router(pins.router)
 app.include_router(users.router)
 app.include_router(auth.router)
+app.include_router(social.router)
+app.include_router(boards.router)
 
 @app.get("/", tags=["Estado"])
 def estado_servidor():

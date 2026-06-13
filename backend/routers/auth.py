@@ -1,3 +1,4 @@
+import os
 import secrets
 import httpx  # Necesario agregar a requirements.txt
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Form
@@ -26,14 +27,22 @@ def iniciar_sesion(background_tasks: BackgroundTasks, form_data: OAuth2PasswordR
             headers={"WWW-Authenticate": "Bearer"},
         )
         
+    # Por si la cuenta ADMIN_EMAIL aún no estaba marcada como admin.
+    if usuario.email == os.getenv("ADMIN_EMAIL") and not usuario.is_admin:
+        usuario.is_admin = True
+        db.add(usuario)
+        db.commit()
+        db.refresh(usuario)
+
     token_jwt = crear_token_acceso(data={"sub": str(usuario.id)})
     background_tasks.add_task(enviar_alerta_login, usuario.email, usuario.username)
-    
+
     return {
-        "access_token": token_jwt, 
+        "access_token": token_jwt,
         "token_type": "bearer",
         "usuario_id": usuario.id,
-        "username": usuario.username
+        "username": usuario.username,
+        "is_admin": usuario.is_admin,
     }
 
 @router.post("/microsoft")
@@ -67,18 +76,25 @@ async def microsoft_login(ms_token: str = Form(...), db: Session = Depends(get_s
         usuario = User(
             username=username,
             email=email,
-            hashed_password=obtener_hash_password(password_imposible), 
-            birthdate=fecha_por_defecto
+            hashed_password=obtener_hash_password(password_imposible),
+            birthdate=fecha_por_defecto,
+            is_admin=(email == os.getenv("ADMIN_EMAIL")),
         )
+        db.add(usuario)
+        db.commit()
+        db.refresh(usuario)
+    elif usuario.email == os.getenv("ADMIN_EMAIL") and not usuario.is_admin:
+        usuario.is_admin = True
         db.add(usuario)
         db.commit()
         db.refresh(usuario)
 
     token_jwt = crear_token_acceso(data={"sub": str(usuario.id)})
-    
+
     return {
-        "access_token": token_jwt, 
+        "access_token": token_jwt,
         "token_type": "bearer",
         "usuario_id": usuario.id,
-        "username": usuario.username
+        "username": usuario.username,
+        "is_admin": usuario.is_admin,
     }

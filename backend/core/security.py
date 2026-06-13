@@ -3,13 +3,16 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 from passlib.context import CryptContext
+from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from bdd import get_session
 from models.schemas import User
 from sqlmodel import Session
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")  
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
+# Versión que NO lanza 401 si falta el token (para endpoints de lectura pública)
+oauth2_scheme_opcional = OAuth2PasswordBearer(tokenUrl="/api/v1/login", auto_error=False)
 
 
 load_dotenv()
@@ -58,4 +61,43 @@ def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = De
     user = db.get(User, int(user_id))
     if user is None:
         raise credentials_exception
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="La cuenta está desactivada.",
+        )
     return user
+
+
+def obtener_admin_actual(usuario: User = Depends(obtener_usuario_actual)) -> User:
+    """Exige que el usuario autenticado sea administrador."""
+    if not usuario.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Se requieren permisos de administrador.",
+        )
+    return usuario
+
+
+def obtener_usuario_opcional(
+    token: Optional[str] = Depends(oauth2_scheme_opcional),
+    db: Session = Depends(get_session),
+) -> Optional[User]:
+    """Devuelve el usuario si hay un token válido; None si no hay token o es inválido.
+
+    No lanza error: sirve para endpoints públicos que personalizan la respuesta
+    cuando el visitante está autenticado (p. ej. saber si ya dio 'me gusta').
+    """
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            return None
+        user = db.get(User, int(user_id))
+        if user is None or not user.is_active:
+            return None
+        return user
+    except Exception:
+        return None
