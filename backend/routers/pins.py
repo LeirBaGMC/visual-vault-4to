@@ -36,7 +36,16 @@ def get_pin_by_id(pin_id: int, session: Session = Depends(get_session)):
     pin = session.get(Pin, pin_id)
     if not pin:
         raise HTTPException(status_code=404, detail="La imagen no fue encontrada.")
-    return pin
+
+    # Adjuntamos el nickname de quien lo subió (o None si es contenido del sistema).
+    creator_username = None
+    if pin.creator_id:
+        creador = session.get(User, pin.creator_id)
+        creator_username = creador.username if creador else None
+
+    data = pin.model_dump()
+    data["creator_username"] = creator_username
+    return data
 
 @router.put("/{pin_id}")
 def editar_pin(
@@ -100,11 +109,11 @@ def eliminar_pines_por_categoria(
 
 @router.post("/upload/")
 def subir_nuevo_pin(
-    title: str = Form(...),
-    description: str = Form(...),
-    category: str = Form(...),
+    title: str = Form(""),
+    description: str = Form(""),
+    category: str = Form("General"),
     file: UploadFile = File(...),
-    current_user: User = Depends(obtener_usuario_actual), 
+    current_user: User = Depends(obtener_usuario_actual),
     db: Session = Depends(get_session)
 ):
     contenido_archivo = file.file.read()
