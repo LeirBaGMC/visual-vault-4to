@@ -72,7 +72,9 @@ const Perfil = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch(`${apiUrl}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${apiUrl}/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((u) => {
         setEsAdmin(!!u?.is_admin);
@@ -251,7 +253,9 @@ const Perfil = () => {
         isOpen={uploadOpen}
         onClose={() => setUploadOpen(false)}
         onUploaded={() => cargarPines()}
-        categorias={categoriasUnicas.filter((c) => c !== "Todas" && c !== "Para Ti")}
+        categorias={categoriasUnicas.filter(
+          (c) => c !== "Todas" && c !== "Para Ti",
+        )}
       />
 
       {toastMsg && (
@@ -410,7 +414,12 @@ const Perfil = () => {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </button>
                   <button
@@ -418,9 +427,24 @@ const Perfil = () => {
                     className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 rounded-lg font-medium transition-colors flex items-center justify-between group"
                   >
                     <span>Configuración</span>
-                    <svg className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg
+                      className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
                   </button>
                   <button
@@ -609,12 +633,18 @@ const Perfil = () => {
                   >
                     {/* Guardar en tablero (desplegable real) */}
                     <SaveToBoardButton pin={pin} size="sm" />
+
+                    {/* Botón de Me Gusta (Diseño Cristal Premium) */}
                     <button
                       onClick={(e) => toggleLike(e, pin)}
-                      className="bg-black/30 backdrop-blur-md border border-white/10 hover:bg-black/50 rounded-full p-2.5 shadow-lg flex items-center justify-center transition-all transform hover:scale-110 active:scale-95"
+                      className="group/btn bg-black/40 backdrop-blur-xl border border-white/10 hover:bg-zinc-800/90 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] rounded-full p-2.5 flex items-center justify-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 active:scale-95"
                     >
                       <svg
-                        className={`w-5 h-5 transition-colors duration-300 ${isLiked ? "text-red-500 fill-red-500" : "text-white"}`}
+                        className={`w-5 h-5 transition-all duration-300 ${
+                          isLiked
+                            ? "text-red-500 fill-red-500 scale-110 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                            : "text-white group-hover/btn:scale-110"
+                        }`}
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth={isLiked ? "0" : "2"}
