@@ -169,15 +169,14 @@ const Login = () => {
                   label="Correo Electrónico"
                   placeholder="tu@correo.com"
                   variant="flat"
-                  radius="full"
                   size="lg"
                   isRequired
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   classNames={{
                     inputWrapper:
-                      "bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all",
-                    label: "font-semibold text-slate-700",
+                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
+                    label: "font-semibold text-slate-700 ml-2",
                   }}
                 />
 
@@ -187,15 +186,14 @@ const Login = () => {
                     label="Contraseña"
                     placeholder="••••••••"
                     variant="flat"
-                    radius="full"
                     size="lg"
                     isRequired
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     classNames={{
                       inputWrapper:
-                        "bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all",
-                      label: "font-semibold text-slate-700",
+                        "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
+                      label: "font-semibold text-slate-700 ml-2",
                     }}
                     endContent={
                       <button
@@ -211,7 +209,7 @@ const Login = () => {
                       </button>
                     }
                   />
-                  <div className="flex justify-end pt-2 px-2">
+                  <div className="flex justify-end pt-2 px-4">
                     <a
                       href="#"
                       className="text-sm text-slate-500 hover:text-slate-900 transition-colors font-semibold"
@@ -224,9 +222,8 @@ const Login = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  radius="full"
                   isLoading={isLoading}
-                  className="w-full bg-slate-900 text-white font-bold text-md mt-4 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+                  className="w-full !rounded-full bg-slate-900 text-white font-bold text-md mt-4 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
                 >
                   Entrar a la Bóveda
                 </Button>
@@ -246,8 +243,7 @@ const Login = () => {
                 isDisabled={isLoading}
                 variant="bordered"
                 size="lg"
-                radius="full"
-                className="w-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-8"
+                className="w-full !rounded-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-8"
                 startContent={
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -264,7 +260,6 @@ const Login = () => {
               >
                 Microsoft Outlook
               </Button>
-
               <p className="text-center text-slate-500 mt-10 text-sm font-medium">
                 ¿No tienes una cuenta?{" "}
                 <Link

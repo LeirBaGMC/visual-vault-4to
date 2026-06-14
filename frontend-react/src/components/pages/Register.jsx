@@ -215,15 +215,14 @@ const Register = () => {
                   label="Nombre de Usuario"
                   placeholder="Gabriel Minda"
                   variant="flat"
-                  radius="full"
                   size="md"
                   isRequired
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   classNames={{
                     inputWrapper:
-                      "bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all",
-                    label: "font-semibold text-slate-700",
+                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
+                    label: "font-semibold text-slate-700 ml-2",
                   }}
                 />
 
@@ -232,15 +231,14 @@ const Register = () => {
                   label="Correo Electrónico"
                   placeholder="tu@correo.com"
                   variant="flat"
-                  radius="full"
                   size="md"
                   isRequired
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   classNames={{
                     inputWrapper:
-                      "bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all",
-                    label: "font-semibold text-slate-700",
+                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
+                    label: "font-semibold text-slate-700 ml-2",
                   }}
                 />
 
@@ -249,15 +247,14 @@ const Register = () => {
                   label="Contraseña"
                   placeholder="Crea una contraseña segura"
                   variant="flat"
-                  radius="full"
                   size="md"
                   isRequired
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   classNames={{
                     inputWrapper:
-                      "bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all",
-                    label: "font-semibold text-slate-700",
+                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
+                    label: "font-semibold text-slate-700 ml-2",
                   }}
                   endContent={
                     <button
@@ -279,24 +276,22 @@ const Register = () => {
                   label="Fecha de Nacimiento"
                   placeholder=" "
                   variant="flat"
-                  radius="full"
                   size="md"
                   isRequired
                   value={birthdate}
                   onChange={(e) => setBirthdate(e.target.value)}
                   classNames={{
                     inputWrapper:
-                      "bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all",
-                    label: "font-semibold text-slate-700",
+                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
+                    label: "font-semibold text-slate-700 ml-2",
                   }}
                 />
 
                 <Button
                   type="submit"
                   size="lg"
-                  radius="full"
                   isLoading={isLoading}
-                  className="w-full bg-slate-900 text-white font-bold text-md mt-6 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+                  className="w-full !rounded-full bg-slate-900 text-white font-bold text-md mt-6 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
                 >
                   Crear mi cuenta
                 </Button>
@@ -316,8 +311,7 @@ const Register = () => {
                 isDisabled={isLoading}
                 variant="bordered"
                 size="lg"
-                radius="full"
-                className="w-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-6"
+                className="w-full !rounded-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-6"
                 startContent={
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -334,7 +328,6 @@ const Register = () => {
               >
                 Microsoft Outlook
               </Button>
-
               <p className="text-center text-slate-500 mt-10 text-sm font-medium">
                 ¿Ya tienes una cuenta?{" "}
                 <Link
