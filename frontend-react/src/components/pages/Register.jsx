@@ -12,7 +12,10 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [birthdate, setBirthdate] = useState("");
   const [isVisible, setIsVisible] = useState(false);
-  const [error, setError] = useState("");
+
+  // Estados para la validación y UX
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [bgImage, setBgImage] = useState(null);
 
@@ -73,7 +76,7 @@ const Register = () => {
             navigate("/perfil");
           } catch (err) {
             console.error("Error validando Microsoft:", err);
-            setError("Error al procesar el registro con Microsoft");
+            setApiError("Error al procesar el registro con Microsoft");
             procesandoAuth.current = false;
           } finally {
             setIsLoading(false);
@@ -107,10 +110,40 @@ const Register = () => {
     fetchRandomPin();
   }, []);
 
+  // Motor de Validación de Datos
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (username.trim().length < 3) {
+      newErrors.username = "El usuario debe tener al menos 3 caracteres.";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      newErrors.email = "Ingresa un correo electrónico válido.";
+    }
+
+    if (password.length < 8) {
+      newErrors.password = "La contraseña debe tener mínimo 8 caracteres.";
+    }
+
+    if (!birthdate) {
+      newErrors.birthdate = "La fecha de nacimiento es obligatoria.";
+    }
+
+    setErrors(newErrors);
+    // Retorna true si no hay errores
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError("");
+
+    // Ejecutar validación antes de contactar al servidor
+    if (!validateForm()) return;
+
     setIsLoading(true);
-    setError("");
 
     try {
       const response = await fetch(`${apiUrl}/users/`, {
@@ -126,9 +159,17 @@ const Register = () => {
       setPaso("codigo");
     } catch (err) {
       console.error("Error en registro manual:", err);
-      setError(err.message);
+      setApiError(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Función auxiliar para limpiar errores al escribir
+  const handleChange = (setter, field) => (e) => {
+    setter(e.target.value);
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: null });
     }
   };
 
@@ -160,7 +201,6 @@ const Register = () => {
             </span>
           </Link>
 
-          {/* Cristal Premium para el Quote */}
           <div className="absolute inset-0 flex items-center justify-center p-16">
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2rem] shadow-2xl max-w-lg transform hover:scale-105 transition-transform duration-500">
               <blockquote className="text-3xl text-white font-display font-medium tracking-tight leading-snug drop-shadow-lg text-center">
@@ -203,26 +243,29 @@ const Register = () => {
                 Únete gratis y centraliza tus recursos hoy mismo.
               </p>
 
-              {error && (
+              {apiError && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-medium shadow-sm animate-in fade-in">
-                  {error}
+                  {apiError}
                 </div>
               )}
 
-              <form className="space-y-4" onSubmit={handleSubmit}>
+              {/* Contenedor FLEX para asegurar que los inputs no se amontonen */}
+              <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
                 <Input
                   type="text"
                   label="Nombre de Usuario"
-                  placeholder="Gabriel Minda"
-                  variant="flat"
-                  size="md"
-                  isRequired
+                  placeholder="Ej: Gabriel Minda"
+                  variant="bordered"
+                  radius="full"
+                  size="lg"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={handleChange(setUsername, "username")}
+                  isInvalid={!!errors.username}
+                  errorMessage={errors.username}
                   classNames={{
                     inputWrapper:
-                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
-                    label: "font-semibold text-slate-700 ml-2",
+                      "bg-white border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 transition-all px-4",
+                    label: "font-semibold text-slate-700",
                   }}
                 />
 
@@ -230,31 +273,35 @@ const Register = () => {
                   type="email"
                   label="Correo Electrónico"
                   placeholder="tu@correo.com"
-                  variant="flat"
-                  size="md"
-                  isRequired
+                  variant="bordered"
+                  radius="full"
+                  size="lg"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleChange(setEmail, "email")}
+                  isInvalid={!!errors.email}
+                  errorMessage={errors.email}
                   classNames={{
                     inputWrapper:
-                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
-                    label: "font-semibold text-slate-700 ml-2",
+                      "bg-white border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 transition-all px-4",
+                    label: "font-semibold text-slate-700",
                   }}
                 />
 
                 <Input
                   type={isVisible ? "text" : "password"}
                   label="Contraseña"
-                  placeholder="Crea una contraseña segura"
-                  variant="flat"
-                  size="md"
-                  isRequired
+                  placeholder="Mínimo 8 caracteres"
+                  variant="bordered"
+                  radius="full"
+                  size="lg"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handleChange(setPassword, "password")}
+                  isInvalid={!!errors.password}
+                  errorMessage={errors.password}
                   classNames={{
                     inputWrapper:
-                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
-                    label: "font-semibold text-slate-700 ml-2",
+                      "bg-white border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 transition-all px-4",
+                    label: "font-semibold text-slate-700",
                   }}
                   endContent={
                     <button
@@ -263,9 +310,9 @@ const Register = () => {
                       onClick={() => setIsVisible(!isVisible)}
                     >
                       {isVisible ? (
-                        <EyeOff className="w-4 h-4 text-slate-500" />
+                        <EyeOff className="w-5 h-5 text-slate-500" />
                       ) : (
-                        <Eye className="w-4 h-4 text-slate-500" />
+                        <Eye className="w-5 h-5 text-slate-500" />
                       )}
                     </button>
                   }
@@ -275,23 +322,26 @@ const Register = () => {
                   type="date"
                   label="Fecha de Nacimiento"
                   placeholder=" "
-                  variant="flat"
-                  size="md"
-                  isRequired
+                  variant="bordered"
+                  radius="full"
+                  size="lg"
                   value={birthdate}
-                  onChange={(e) => setBirthdate(e.target.value)}
+                  onChange={handleChange(setBirthdate, "birthdate")}
+                  isInvalid={!!errors.birthdate}
+                  errorMessage={errors.birthdate}
                   classNames={{
                     inputWrapper:
-                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
-                    label: "font-semibold text-slate-700 ml-2",
+                      "bg-white border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 transition-all px-4",
+                    label: "font-semibold text-slate-700",
                   }}
                 />
 
                 <Button
                   type="submit"
                   size="lg"
+                  radius="full"
                   isLoading={isLoading}
-                  className="w-full !rounded-full bg-slate-900 text-white font-bold text-md mt-6 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+                  className="w-full bg-slate-900 text-white font-bold text-md mt-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
                 >
                   Crear mi cuenta
                 </Button>
@@ -311,7 +361,8 @@ const Register = () => {
                 isDisabled={isLoading}
                 variant="bordered"
                 size="lg"
-                className="w-full !rounded-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-6"
+                radius="full"
+                className="w-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-6"
                 startContent={
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -328,6 +379,7 @@ const Register = () => {
               >
                 Microsoft Outlook
               </Button>
+
               <p className="text-center text-slate-500 mt-10 text-sm font-medium">
                 ¿Ya tienes una cuenta?{" "}
                 <Link
