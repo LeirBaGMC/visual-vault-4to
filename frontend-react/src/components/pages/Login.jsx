@@ -10,7 +10,10 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = useState(false);
-  const [error, setError] = useState("");
+
+  // Estados para la validación y UX (Igual que en Register)
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [bgImage, setBgImage] = useState(null);
 
@@ -60,7 +63,7 @@ const Login = () => {
             navigate("/perfil");
           } catch (err) {
             console.error(err);
-            setError("Error al procesar el inicio de sesión");
+            setApiError("Error al procesar el inicio de sesión con Microsoft");
             procesandoAuth.current = false;
           } finally {
             setIsLoading(false);
@@ -94,10 +97,34 @@ const Login = () => {
     fetchRandomPin();
   }, []);
 
+  // Motor de Validación de Datos (Evita enviar campos vacíos)
+  const validateForm = () => {
+    const newErrors = {};
+    const mail = email || "";
+    const pass = password || "";
+
+    if (!mail.trim()) {
+      newErrors.email = "El correo es obligatorio.";
+    }
+    if (!pass.trim()) {
+      newErrors.password = "La contraseña es obligatoria.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError("");
+
+    // 1. Validar antes de contactar al backend
+    if (!validateForm()) {
+      setApiError("Por favor, ingresa tu correo y contraseña.");
+      return;
+    }
+
     setIsLoading(true);
-    setError("");
 
     try {
       const formData = new URLSearchParams();
@@ -111,17 +138,48 @@ const Login = () => {
       });
 
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.detail || "Credenciales incorrectas");
+
+      // 2. Traductor EXTREMO de errores (Anti [object Object])
+      if (!response.ok) {
+        let mensajeError = "Credenciales incorrectas.";
+
+        if (data && data.detail) {
+          if (Array.isArray(data.detail)) {
+            const mensajes = data.detail.map(
+              (err) => err.msg || "Dato inválido",
+            );
+            mensajeError = mensajes.join(" | ");
+          } else if (typeof data.detail === "string") {
+            mensajeError = data.detail;
+          } else {
+            mensajeError = JSON.stringify(data.detail);
+          }
+        }
+        throw new Error(mensajeError);
+      }
 
       setCodeEmail(data.email || email);
       setCodePurpose(data.requires_verification ? "register" : "login");
       setPaso("codigo");
     } catch (err) {
       console.error(err);
-      setError(err.message);
+
+      // 3. Seguro final absoluto
+      let textoFinal = err.message || "Error de conexión con el servidor.";
+      if (textoFinal.includes("[object Object]")) {
+        textoFinal = "Error de formato en las credenciales.";
+      }
+      setApiError(textoFinal);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Función auxiliar para limpiar errores visuales al escribir
+  const handleChange = (setter, field) => (e) => {
+    setter(e.target.value);
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: null });
     }
   };
 
@@ -157,43 +215,48 @@ const Login = () => {
                 Ingresa a tu bóveda y continúa construyendo.
               </p>
 
-              {error && (
+              {apiError && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-medium shadow-sm animate-in fade-in">
-                  {error}
+                  {apiError}
                 </div>
               )}
 
-              <form className="space-y-5" onSubmit={handleSubmit}>
+              {/* Contenedor FLEX para separación idéntica al Register */}
+              <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
                 <Input
                   type="email"
                   label="Correo Electrónico"
                   placeholder="tu@correo.com"
-                  variant="flat"
+                  variant="bordered"
+                  radius="full"
                   size="lg"
-                  isRequired
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleChange(setEmail, "email")}
+                  isInvalid={!!errors.email}
+                  errorMessage={errors.email}
                   classNames={{
                     inputWrapper:
-                      "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
-                    label: "font-semibold text-slate-700 ml-2",
+                      "bg-white border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 transition-all px-4",
+                    label: "font-semibold text-slate-700",
                   }}
                 />
 
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Input
                     type={isVisible ? "text" : "password"}
                     label="Contraseña"
                     placeholder="••••••••"
-                    variant="flat"
+                    variant="bordered"
+                    radius="full"
                     size="lg"
-                    isRequired
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handleChange(setPassword, "password")}
+                    isInvalid={!!errors.password}
+                    errorMessage={errors.password}
                     classNames={{
                       inputWrapper:
-                        "!rounded-full bg-white border border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 focus-within:!ring-1 focus-within:!ring-slate-900 shadow-sm transition-all px-6",
-                      label: "font-semibold text-slate-700 ml-2",
+                        "bg-white border-slate-200 hover:border-slate-300 focus-within:!border-slate-900 transition-all px-4",
+                      label: "font-semibold text-slate-700",
                     }}
                     endContent={
                       <button
@@ -209,7 +272,7 @@ const Login = () => {
                       </button>
                     }
                   />
-                  <div className="flex justify-end pt-2 px-4">
+                  <div className="flex justify-end px-4">
                     <a
                       href="#"
                       className="text-sm text-slate-500 hover:text-slate-900 transition-colors font-semibold"
@@ -222,8 +285,9 @@ const Login = () => {
                 <Button
                   type="submit"
                   size="lg"
+                  radius="full"
                   isLoading={isLoading}
-                  className="w-full !rounded-full bg-slate-900 text-white font-bold text-md mt-4 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+                  className="w-full !rounded-full bg-slate-900 text-white font-bold text-md mt-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
                 >
                   Entrar a la Bóveda
                 </Button>
@@ -243,6 +307,7 @@ const Login = () => {
                 isDisabled={isLoading}
                 variant="bordered"
                 size="lg"
+                radius="full"
                 className="w-full !rounded-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-8"
                 startContent={
                   <svg
