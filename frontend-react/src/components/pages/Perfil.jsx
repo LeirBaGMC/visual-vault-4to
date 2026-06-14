@@ -638,7 +638,7 @@ const Perfil = () => {
                   <div
                     className="absolute inset-0 bg-cover bg-center transition-all duration-500 delay-0 group-hover:delay-500 group-hover:blur-[12px] group-hover:brightness-40 group-hover/card:!blur-none group-hover/card:!brightness-100 group-hover/card:!delay-0 group-hover/card:scale-[1.03]"
                     style={{
-                      backgroundImage: `url(${obtenerUrlImagen(pin.image_url)})`,
+                      backgroundImage: `url('${obtenerUrlImagen(pin.image_url)}')`,
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
