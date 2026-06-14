@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlmodel import Session, select
 from bdd import get_session
-from models.schemas import User, UserCreate, UserRead, VerifyRequest, ResendRequest
+from models.schemas import User, UserCreate, UserRead, UserUpdate, VerifyRequest, ResendRequest
 from core.security import obtener_hash_password, obtener_usuario_actual, crear_token_acceso
 from core.codes import generar_codigo, validar_codigo
 from utils.email_service import enviar_correo_bienvenida, enviar_codigo_verificacion
@@ -17,6 +17,36 @@ router = APIRouter(
 @router.get("/me", response_model=UserRead)
 def usuario_actual(usuario: User = Depends(obtener_usuario_actual)):
     """Devuelve los datos del usuario autenticado (incluye is_admin)."""
+    return usuario
+
+
+@router.put("/me", response_model=UserRead)
+def actualizar_perfil(
+    cambios: UserUpdate,
+    db: Session = Depends(get_session),
+    usuario: User = Depends(obtener_usuario_actual),
+):
+    """Actualiza el perfil del usuario (nombre, username, bio, sitio web)."""
+    datos = cambios.model_dump(exclude_unset=True)
+
+    nuevo_username = datos.get("username")
+    if nuevo_username and nuevo_username != usuario.username:
+        existe = db.exec(
+            select(User).where(User.username == nuevo_username, User.id != usuario.id)
+        ).first()
+        if existe:
+            raise HTTPException(status_code=400, detail="Ese nombre de usuario ya está en uso.")
+
+    for campo, valor in datos.items():
+        if campo == "username":
+            if valor:  # el username no puede quedar vacío
+                usuario.username = valor
+        else:
+            setattr(usuario, campo, valor if valor != "" else None)
+
+    db.add(usuario)
+    db.commit()
+    db.refresh(usuario)
     return usuario
 
 

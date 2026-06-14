@@ -10,12 +10,12 @@ env/
 .env
 
 # --- Bases de datos ---
-database.db
+
 *.sqlite
 *.sqlite3
 
 # --- Scripts de pruebas o temporales ---
-bdd.py
+# OJO: NO ignorar bdd.py — es el módulo de base de datos (core), debe ir en el repo.
 temp/
 *.log
 
@@ -28,5 +28,5 @@ Thumbs.db
 .idea/node_modules/
 
 # Dependencias pesadas
-node_modules/
+node_modules/ 
 **/node_modules/

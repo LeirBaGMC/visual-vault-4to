@@ -11,6 +11,7 @@ import Perfil from "./components/pages/Perfil";
 import PinPage from "./components/pages/PinPage"; // Nombre corregido
 import Tableros from "./components/pages/Tableros";
 import Visualizador from "./components/pages/Visualizador";
+import Configuracion from "./components/pages/Configuracion";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/tableros" element={<Tableros />} />
         <Route path="/visualizar" element={<Visualizador />} />
+        <Route path="/configuracion" element={<Configuracion />} />
       </Route>
 
       {/* 2. RUTAS CON PLANTILLA (Automáticamente envueltas con el Header) */}

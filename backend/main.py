@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -22,10 +23,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173"
-]
+# Orígenes permitidos por CORS. Configurables por entorno para producción (EC2):
+# CORS_ORIGINS="https://tu-dominio.com,https://www.tu-dominio.com"
+_default_origins = "http://localhost:5173,http://127.0.0.1:5173"
+origins = [o.strip() for o in os.getenv("CORS_ORIGINS", _default_origins).split(",") if o.strip()]
 
 
 app.add_middleware(

@@ -237,7 +237,7 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
           <button
             onClick={subir}
             disabled={loading}
-            className="w-full bg-[#e60023] hover:bg-[#b6001a] disabled:opacity-60 text-white font-bold py-3 rounded-full flex items-center justify-center gap-2 transition-colors"
+            className="w-full bg-[#e60023] hover:bg-[#c30420] disabled:opacity-60 text-white font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-red-900/30 active:scale-[0.99] transition-all"
           >
             {loading ? (
               <>

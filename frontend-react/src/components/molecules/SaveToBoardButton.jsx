@@ -95,7 +95,7 @@ const SaveToBoardButton = ({ pin, size = "sm" }) => {
           radius="full"
           size={size}
           onClick={(e) => e.stopPropagation()}
-          className="font-bold text-white shadow-md bg-[#e60023] hover:bg-[#b6001a] active:scale-95 transition-all"
+          className="font-bold text-white bg-[#e60023] hover:bg-[#c30420] active:scale-95 shadow-lg shadow-red-900/30 ring-1 ring-white/10 transition-all"
         >
           Guardar
         </Button>
@@ -167,7 +167,7 @@ const SaveToBoardButton = ({ pin, size = "sm" }) => {
                 />
                 <button
                   onClick={crearYGuardar}
-                  className="text-sm font-bold text-white bg-[#e60023] hover:bg-[#b6001a] px-4 py-2 rounded-full"
+                  className="text-sm font-bold text-white bg-[#e60023] hover:bg-[#c30420] px-4 py-2 rounded-full shadow-md shadow-red-900/20 active:scale-95 transition-all"
                 >
                   Crear
                 </button>

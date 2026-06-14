@@ -5,6 +5,7 @@ import Carousel3D from "../organisms/Carousel3D";
 const Tableros = () => {
   const navigate = useNavigate();
   const [misBoards, setMisBoards] = useState([]);
+  const [perfilUser, setPerfilUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [vista, setVista] = useState("carrusel"); // "carrusel" | "grid"
 
@@ -12,24 +13,33 @@ const Tableros = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${apiUrl}/boards/`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    const auth = token ? { Authorization: `Bearer ${token}` } : {};
+    fetch(`${apiUrl}/boards/`, { headers: auth })
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => setMisBoards(Array.isArray(data) ? data : []))
       .catch(() => setMisBoards([]))
       .finally(() => setLoading(false));
+    fetch(`${apiUrl}/users/me`, { headers: auth })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((u) => setPerfilUser(u))
+      .catch(() => {});
   }, [apiUrl]);
+
+  const displayName = perfilUser?.name || perfilUser?.username || "Tu perfil";
+  const handle = perfilUser?.username ? `@${perfilUser.username}` : "";
+  const iniciales = (perfilUser?.name || perfilUser?.username || "VV").slice(0, 2).toUpperCase();
 
   return (
     <div className="min-h-screen bg-[#070809] text-white pt-24 pb-16 overflow-hidden">
       {/* HEADER DE PERFIL */}
       <header className="flex flex-col items-center mb-8 px-4 relative z-20">
         <div className="w-24 h-24 bg-gradient-to-br from-zinc-700 to-zinc-900 ring-1 ring-white/10 rounded-full mb-4 flex items-center justify-center text-2xl font-bold shadow-xl">
-          MC
+          {iniciales}
         </div>
-        <h1 className="text-3xl font-display font-bold tracking-tight">Gabriel Minda</h1>
-        <p className="text-zinc-400 text-sm mt-1">@gabominda • Siguiendo a 0</p>
+        <h1 className="text-3xl font-display font-bold tracking-tight">{displayName}</h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          {handle && <>{handle} • </>}Siguiendo a 0
+        </p>
 
         {/* Toggle Carrusel / Cuadrícula */}
         <div className="mt-6 inline-flex items-center gap-1 p-1 rounded-full bg-zinc-900/70 ring-1 ring-white/10 backdrop-blur">

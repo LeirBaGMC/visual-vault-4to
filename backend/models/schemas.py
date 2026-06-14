@@ -12,6 +12,10 @@ class User(SQLModel, table=True):
     birthdate: date
     is_active: bool = Field(default=True)
     is_admin: bool = Field(default=False)
+    # Perfil editable desde Configuración
+    name: Optional[str] = Field(default=None)       # nombre para mostrar
+    bio: Optional[str] = Field(default=None)         # "Cuenta tu historia"
+    website: Optional[str] = Field(default=None)     # sitio web
 
 
     pins: List["Pin"] = Relationship(back_populates="creator")
@@ -30,6 +34,17 @@ class UserRead(SQLModel):
     email: str
     is_active: bool
     is_admin: bool = False
+    name: Optional[str] = None
+    bio: Optional[str] = None
+    website: Optional[str] = None
+
+
+class UserUpdate(SQLModel):
+    # Campos editables del perfil (todos opcionales).
+    name: Optional[str] = None
+    username: Optional[str] = None
+    bio: Optional[str] = None
+    website: Optional[str] = None
 
 
 

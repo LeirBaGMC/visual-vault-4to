@@ -88,7 +88,7 @@ const Register = () => {
     useEffect(() => {
         const fetchRandomPin = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/v1/pins/');
+                const response = await fetch(`${apiUrl}/pins/`);
                 if (!response.ok) throw new Error("Error de red");
                 const data = await response.json();
                 
