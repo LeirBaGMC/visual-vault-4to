@@ -105,10 +105,10 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
       onClick={cerrar}
     >
       <div
-        className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
           <h2 className="text-lg font-bold text-white">Subir una imagen</h2>
           <button
             onClick={cerrar}
@@ -118,7 +118,7 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto">
           {error && (
             <div className="p-3 bg-red-950/50 border border-red-800 text-red-300 rounded-xl text-sm">
               {error}
@@ -134,7 +134,7 @@ const UploadModal = ({ isOpen, onClose, onUploaded, categorias = [] }) => {
               e.preventDefault();
               elegir(e.dataTransfer.files?.[0]);
             }}
-            className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-950/50 flex flex-col items-center justify-center gap-2 text-zinc-400 overflow-hidden transition-colors"
+            className="w-full h-40 sm:h-52 rounded-2xl border-2 border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-950/50 flex flex-col items-center justify-center gap-2 text-zinc-400 overflow-hidden transition-colors shrink-0"
           >
             {preview ? (
               <img src={preview} alt="preview" className="w-full h-full object-contain" />
