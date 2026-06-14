@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Popover, PopoverTrigger, PopoverContent, Button, Spinner } from "@heroui/react";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Button,
+  Spinner,
+} from "@heroui/react";
 import { Plus, Check } from "lucide-react";
 
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
@@ -90,12 +96,12 @@ const SaveToBoardButton = ({ pin, size = "sm" }) => {
       backdrop="transparent"
     >
       <PopoverTrigger>
+        {/* === BOTÓN CON DISEÑO PREMIUM === */}
         <Button
-          color="danger"
           radius="full"
           size={size}
           onClick={(e) => e.stopPropagation()}
-          className="font-bold text-white bg-[#e60023] hover:bg-[#c30420] active:scale-95 shadow-lg shadow-red-900/30 ring-1 ring-white/10 transition-all"
+          className="font-bold text-white bg-gradient-to-r from-[#E60023] to-[#ff3355] hover:from-[#c30420] hover:to-[#E60023] shadow-[0_4px_15px_rgba(230,0,35,0.3)] hover:shadow-[0_8px_20px_rgba(230,0,35,0.5)] transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 border-none"
         >
           Guardar
         </Button>
@@ -103,11 +109,13 @@ const SaveToBoardButton = ({ pin, size = "sm" }) => {
 
       <PopoverContent
         onClick={(e) => e.stopPropagation()}
-        className="p-0 w-72 rounded-2xl overflow-hidden"
+        className="p-0 w-72 rounded-2xl overflow-hidden shadow-2xl border border-gray-100"
       >
         <div className="w-full bg-white text-gray-900">
           <div className="px-4 pt-3 pb-2 border-b border-gray-100">
-            <p className="text-sm font-bold text-gray-900">Guardar en tablero</p>
+            <p className="text-sm font-bold text-gray-900">
+              Guardar en tablero
+            </p>
           </div>
 
           <div className="max-h-64 overflow-y-auto py-1">
@@ -144,7 +152,7 @@ const SaveToBoardButton = ({ pin, size = "sm" }) => {
                       <Check size={16} /> Guardado
                     </span>
                   ) : (
-                    <span className="text-xs font-bold text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full">
+                    <span className="text-xs font-bold text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full transition-colors">
                       Guardar
                     </span>
                   )}
@@ -156,14 +164,14 @@ const SaveToBoardButton = ({ pin, size = "sm" }) => {
           {/* Crear tablero */}
           <div className="border-t border-gray-100 p-2">
             {creando ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 animate-fade-in-up">
                 <input
                   autoFocus
                   value={nuevoNombre}
                   onChange={(e) => setNuevoNombre(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && crearYGuardar()}
                   placeholder="Nombre del tablero"
-                  className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-full outline-none focus:ring-2 focus:ring-gray-300"
+                  className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-full outline-none focus:ring-2 focus:ring-gray-300 transition-shadow"
                 />
                 <button
                   onClick={crearYGuardar}
