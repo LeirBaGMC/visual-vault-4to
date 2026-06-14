@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMsal } from "@azure/msal-react";
+import useAuthMsal from "../../hooks/useAuthMsal";
 import { loginRequest } from "../../authConfig";
 import { Button, Input } from "@heroui/react";
 import { Eye, EyeOff } from "lucide-react";
@@ -20,7 +20,7 @@ const Login = () => {
     const [codePurpose, setCodePurpose] = useState("login"); // "login" | "register"
 
     const navigate = useNavigate();
-    const { instance } = useMsal();
+    const { instance } = useAuthMsal();
     const procesandoAuth = useRef(false); // Evita ejecuciones concurrentes de la promesa
 
     // Guarda la sesión tras verificar el código y entra al perfil.

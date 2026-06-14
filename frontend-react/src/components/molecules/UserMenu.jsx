@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMsal } from "@azure/msal-react";
+import useAuthMsal from "../../hooks/useAuthMsal";
 import { ChevronDown } from "lucide-react"; 
 
 const UserMenu = ({ isScrolled }) => {
@@ -10,7 +10,7 @@ const UserMenu = ({ isScrolled }) => {
     const menuRef = useRef(null); // Referencia para detectar clics afuera
     
     const navigate = useNavigate();
-    const { instance } = useMsal();
+    const { instance } = useAuthMsal();
 
    
     // Cerrar el menú si el usuario hace clic en cualquier otro lado de la pantalla

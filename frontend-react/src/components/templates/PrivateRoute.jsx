@@ -1,11 +1,11 @@
 // src/components/templates/PrivateRoute.jsx
 // Guard de rutas privadas: deja pasar si hay token JWT o sesión activa de Microsoft.
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useMsal } from "@azure/msal-react";
+import useAuthMsal from "../../hooks/useAuthMsal";
 
 const PrivateRoute = () => {
   const location = useLocation();
-  const { accounts } = useMsal();
+  const { accounts } = useAuthMsal();
 
   const token = localStorage.getItem("token");
   const hasMicrosoftAccount = accounts.length > 0;

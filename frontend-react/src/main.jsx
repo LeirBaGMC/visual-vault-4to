@@ -5,22 +5,34 @@ import { HeroUIProvider } from '@heroui/system'
 import App from './App.jsx'
 import './assets/global.css'
 
-import { PublicClientApplication } from "@azure/msal-browser"
 import { MsalProvider } from "@azure/msal-react"
-import { msalConfig } from "./authConfig" 
+import { msalInstance } from "./msalInstance"
 
-const msalInstance = new PublicClientApplication(msalConfig);
+function montarApp() {
+  const arbol = (
+    <BrowserRouter>
+      <HeroUIProvider>
+        <App />
+      </HeroUIProvider>
+    </BrowserRouter>
+  );
 
-msalInstance.initialize().then(() => {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-      <MsalProvider instance={msalInstance}>
-        <BrowserRouter>
-          <HeroUIProvider>
-            <App />
-          </HeroUIProvider>
-        </BrowserRouter>
-      </MsalProvider>
+      {msalInstance ? <MsalProvider instance={msalInstance}>{arbol}</MsalProvider> : arbol}
     </React.StrictMode>,
-  )
-});
+  );
+}
+
+// La app SIEMPRE se monta, haya o no MSAL (evita la pantalla en blanco en HTTP).
+if (msalInstance) {
+  msalInstance
+    .initialize()
+    .then(montarApp)
+    .catch((e) => {
+      console.warn("[MSAL] init falló; la app carga igual sin login de Microsoft:", e);
+      montarApp();
+    });
+} else {
+  montarApp();
+}

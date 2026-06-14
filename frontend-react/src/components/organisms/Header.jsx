@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useMsal } from "@azure/msal-react";
-import Logo from '../atoms/Logo'; 
+import useAuthMsal from "../../hooks/useAuthMsal";
+import Logo from '../atoms/Logo';
 import UserMenu from '../molecules/UserMenu'; 
 
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     
    
-    const { accounts } = useMsal(); 
+    const { accounts } = useAuthMsal();
 
     useEffect(() => {
         const handleScroll = () => {

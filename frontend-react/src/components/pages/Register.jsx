@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMsal } from "@azure/msal-react";
+import useAuthMsal from "../../hooks/useAuthMsal";
 import { loginRequest } from "../../authConfig";
 import { Button, Input } from "@heroui/react";
 import { Eye, EyeOff } from "lucide-react";
@@ -20,7 +20,7 @@ const Register = () => {
     const [paso, setPaso] = useState("form"); // "form" | "codigo"
 
     const navigate = useNavigate();
-    const { instance } = useMsal();
+    const { instance } = useAuthMsal();
     const procesandoAuth = useRef(false);
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';

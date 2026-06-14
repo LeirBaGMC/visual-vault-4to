@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useMsal } from "@azure/msal-react";
+import useAuthMsal from "./useAuthMsal";
 
 // Cierre de sesión consistente para toda la app:
 // borra el token/username locales Y cierra la sesión de Microsoft (MSAL) si la hay.
@@ -7,7 +7,7 @@ import { useMsal } from "@azure/msal-react";
 // por lo que con cuenta de Outlook (MSAL) seguías autenticado.
 export default function useLogout() {
   const navigate = useNavigate();
-  const { instance } = useMsal();
+  const { instance } = useAuthMsal();
 
   return () => {
     localStorage.clear();
