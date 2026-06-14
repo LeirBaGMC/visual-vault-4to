@@ -13,13 +13,14 @@ const CodeVerification = ({ email, purpose, onVerified, onBack }) => {
   const [resent, setResent] = useState(false);
 
   const endpoint = purpose === "login" ? "/login/verify" : "/users/verify";
-  const titulo = purpose === "login" ? "Verificación en dos pasos" : "Confirma tu correo";
+  const titulo =
+    purpose === "login" ? "Verificación en dos pasos" : "Confirma tu correo";
 
   const verificar = async (e) => {
     e?.preventDefault();
     const limpio = code.trim();
     if (limpio.length !== 6) {
-      setError("Ingresa los 6 dígitos.");
+      setError("Ingresa los 6 dígitos completos.");
       return;
     }
     setLoading(true);
@@ -56,52 +57,60 @@ const CodeVerification = ({ email, purpose, onVerified, onBack }) => {
   };
 
   return (
-    <div className="max-w-md w-full mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center mb-5">
-        <MailCheck className="w-6 h-6" />
+    <div className="max-w-md w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Icono Superior Premium */}
+      <div className="w-14 h-14 rounded-full bg-slate-900 text-white flex items-center justify-center mb-6 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)]">
+        <MailCheck className="w-7 h-7" />
       </div>
-      <h2 className="text-3xl md:text-4xl font-display font-medium text-slate-900 tracking-tight mb-2">
+
+      <h2 className="text-3xl md:text-4xl font-display font-semibold text-slate-900 tracking-tight mb-3">
         {titulo}
       </h2>
-      <p className="text-slate-500 mb-8">
+      <p className="text-slate-500 mb-8 text-lg leading-relaxed">
         Enviamos un código de 6 dígitos a{" "}
-        <span className="font-semibold text-slate-700">{email}</span>. Caduca en 10 minutos.
+        <span className="font-semibold text-slate-800">{email}</span>. Caduca en
+        10 minutos.
       </p>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
+        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-medium shadow-sm animate-in fade-in">
           {error}
         </div>
       )}
 
-      <form onSubmit={verificar} className="space-y-5">
+      <form onSubmit={verificar} className="space-y-6">
+        {/* Input de Código Estilo Píldora */}
         <input
           autoFocus
           inputMode="numeric"
           maxLength={6}
           value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onChange={(e) => {
+            setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+            if (error) setError(""); // Limpia el error al escribir
+          }}
           placeholder="······"
-          className="w-full text-center text-3xl tracking-[0.5em] font-bold text-slate-900 bg-white border-2 border-slate-200 rounded-2xl py-4 focus:outline-none focus:border-slate-900 transition-colors placeholder:text-slate-300"
+          className="w-full text-center text-3xl md:text-4xl tracking-[0.5em] font-bold text-slate-900 bg-white border border-slate-200 !rounded-full py-4 shadow-sm focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 hover:border-slate-300 transition-all placeholder:text-slate-300"
         />
 
+        {/* Botón Principal con Física Premium */}
         <Button
           type="submit"
-          color="primary"
           size="lg"
-          radius="md"
+          radius="full"
           isLoading={loading}
-          className="w-full bg-slate-900 font-bold hover:bg-slate-800 text-md"
+          className="w-full !rounded-full bg-slate-900 text-white font-bold text-md mt-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
         >
           Verificar y continuar
         </Button>
       </form>
 
-      <div className="mt-6 flex items-center justify-between text-sm">
+      {/* Enlaces de Acción Inferiores */}
+      <div className="mt-8 flex items-center justify-between text-sm font-medium">
         {onBack ? (
           <button
             onClick={onBack}
-            className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-medium transition-colors"
+            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors px-2 py-1 -ml-2 rounded-lg hover:bg-slate-100"
           >
             <ArrowLeft className="w-4 h-4" /> Volver
           </button>
@@ -110,7 +119,12 @@ const CodeVerification = ({ email, purpose, onVerified, onBack }) => {
         )}
         <button
           onClick={reenviar}
-          className="font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+          disabled={resent}
+          className={`transition-colors px-3 py-1.5 -mr-3 rounded-lg ${
+            resent
+              ? "text-green-600 bg-green-50 cursor-default"
+              : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+          }`}
         >
           {resent ? "✓ Código reenviado" : "Reenviar código"}
         </button>
