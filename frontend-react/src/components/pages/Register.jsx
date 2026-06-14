@@ -177,12 +177,12 @@ const Register = () => {
     <div className="min-h-screen w-full flex bg-[#FAF7F4] font-sans selection:bg-slate-900 selection:text-white">
       {/* PANEL VISUAL (Lado Izquierdo) */}
       <div className="hidden lg:block lg:w-1/2 p-4">
-        <div className="w-full h-full rounded-[2.5rem] overflow-hidden relative shadow-2xl bg-slate-800">
+        <div className="w-full  h-full rounded-[2.5rem] overflow-hidden relative shadow-2xl bg-slate-800">
           {bgImage ? (
             <img
               src={bgImage}
               alt="Code Vault"
-              className="w-full h-full object-cover animate-in fade-in duration-1000"
+              className="w-full !rounded-full h-full object-cover animate-in fade-in duration-1000"
             />
           ) : (
             <div className="w-full h-full animate-pulse bg-slate-700"></div>
@@ -341,7 +341,7 @@ const Register = () => {
                   size="lg"
                   radius="full"
                   isLoading={isLoading}
-                  className="w-full bg-slate-900 text-white font-bold text-md mt-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+                  className="w-full !rounded-full bg-slate-900 text-white font-bold text-md mt-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
                 >
                   Crear mi cuenta
                 </Button>
@@ -362,7 +362,7 @@ const Register = () => {
                 variant="bordered"
                 size="lg"
                 radius="full"
-                className="w-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-6"
+                className="w-full !rounded-full font-bold text-slate-700 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 mt-6"
                 startContent={
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
